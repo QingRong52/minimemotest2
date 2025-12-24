@@ -7,8 +7,8 @@ const FloatingPot: React.FC = () => {
 
   return (
     <button
-      onClick={() => navigate('/recipe/r1')} // Quick jump to active cooking
-      className="fixed bottom-28 right-6 w-16 h-16 bg-[#ff7a28] rounded-full flex items-center justify-center shadow-lg pot-glow transition-transform hover:scale-110 active:scale-95 floating z-50 overflow-hidden group"
+      onClick={() => navigate('/recipe/r1')} 
+      className="absolute bottom-28 right-6 w-14 h-14 bg-[#ff7a28] rounded-full flex items-center justify-center shadow-lg pot-glow transition-transform hover:scale-110 active:scale-95 floating z-50 overflow-hidden group"
     >
       <div className="relative">
         <svg
@@ -18,7 +18,7 @@ const FloatingPot: React.FC = () => {
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="w-8 h-8"
+          className="w-7 h-7"
         >
           <path d="M4 10h16c1 0 2 1 2 2v2c0 3-3 5-8 5s-8-2-8-5v-2c0-1 1-2 2-2z" />
           <path d="M12 7V3" />

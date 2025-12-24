@@ -3,36 +3,85 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>厨神老爸 - 智能厨房</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      body {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #0F0F0F;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      /* 模拟手机容器 */
+      #root {
+        width: 375px;
+        height: 812px;
+        background-color: #FDFDFD;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7);
+        border: 10px solid #1A1A1A;
+        border-radius: 50px;
         font-family: 'Outfit', sans-serif;
-        background-color: #F9F9F9;
         color: #1A1A1A;
-        max-width: 375px;
-        margin: 0 auto;
-        min-height: 812px;
       }
-      .glass {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+
+      /* 模拟灵动岛与状态栏 */
+      #root::before {
+        content: "";
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 28px;
+        background: #000;
+        border-radius: 20px;
+        z-index: 100;
       }
-      ::-webkit-scrollbar {
-        display: none;
+
+      /* 模拟状态栏文字 */
+      .status-bar {
+        position: absolute;
+        top: 14px;
+        left: 24px;
+        right: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        font-weight: 700;
+        z-index: 99;
+        color: #1A1A1A;
       }
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
+
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      
       @keyframes fade-in {
-        from { opacity: 0; transform: translateY(10px); }
+        from { opacity: 0; transform: translateY(12px); }
         to { opacity: 1; transform: translateY(0); }
       }
       .animate-fade-in {
-        animation: fade-in 0.5s ease-out forwards;
+        animation: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @media (max-width: 500px) {
+        body { background-color: #FDFDFD; }
+        #root {
+          width: 100vw;
+          height: 100vh;
+          border: none;
+          border-radius: 0;
+          box-shadow: none;
+        }
+        #root::before, .status-bar { display: none; }
       }
     </style>
   <script type="importmap">
@@ -49,7 +98,15 @@
 </script>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="status-bar">
+        <span>9:41</span>
+        <div style="display: flex; gap: 4px; align-items: center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20zM12 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 22h20V2L2 22z"/></svg>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
