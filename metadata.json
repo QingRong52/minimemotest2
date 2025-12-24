@@ -1,0 +1,7 @@
+{
+  "name": "厨神老爸 - 智能厨房与库存管理",
+  "description": "一款采用毛玻璃 UI 设计的高端极简厨房管理应用，具备实时库存追踪、智能食谱发现和财务分析功能。",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
