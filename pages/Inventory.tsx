@@ -1,44 +1,42 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
-  Plus, X, Check, ShoppingCart, Sparkles, Loader2, 
-  Beef, Carrot, Apple, Milk, Egg, Fish, Salad, Coffee, Candy, Soup, Droplet, UtensilsCrossed 
+  ShoppingCart, Sparkles, Utensils, X, Trash2, ChefHat, CheckCircle2, PackagePlus, Sandwich, Tags, Check
 } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import InventoryCard from '../components/InventoryCard';
-import { Ingredient } from '../types';
+import RecipeCard from '../components/RecipeCard';
+import { LuluSearch, LuluCart } from '../components/LuluIcons';
+import { Ingredient, Recipe } from '../types';
 import { useKitchen } from '../KitchenContext';
 
-const ICON_OPTIONS = [
-  { name: 'UtensilsCrossed', icon: UtensilsCrossed },
-  { name: 'Beef', icon: Beef },
-  { name: 'Carrot', icon: Carrot },
-  { name: 'Apple', icon: Apple },
-  { name: 'Milk', icon: Milk },
-  { name: 'Egg', icon: Egg },
-  { name: 'Fish', icon: Fish },
-  { name: 'Salad', icon: Salad },
-  { name: 'Coffee', icon: Coffee },
-  { name: 'Candy', icon: Candy },
-  { name: 'Soup', icon: Soup },
-  { name: 'Droplet', icon: Droplet },
+const UNITS = ['g', '个', '克', '斤'];
+
+// 食材专属图标
+const INGREDIENT_ICONS = [
+  'Beef', 'Fish', 'Apple', 'Pizza', 'Sandwich', 'Soup', 'Cookie', 'Cake', 'IceCream', 'Utensils'
+];
+
+// 调料专属图标
+const SEASONING_ICONS = [
+  'Flame', 'Droplets', 'Leaf', 'Wheat', 'Wine', 'Milk', 'Zap', 'Coffee', 'Container', 'Package'
 ];
 
 const Inventory: React.FC = () => {
-  const navigate = useNavigate();
-  const { ingredients, addIngredient, removeIngredient } = useKitchen();
+  const { ingredients, recipes, addIngredient, removeIngredient, shoppingList, clearShoppingList, toggleShoppingItem, addBoughtToInventory, addExpense } = useKitchen();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isMatching, setIsMatching] = useState(false);
-  
-  // Form State
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isInventoryCheckOpen, setIsInventoryCheckOpen] = useState(false);
+  const [isMagicMatchOpen, setIsMagicMatchOpen] = useState(false);
+  const [tempInventoryItems, setTempInventoryItems] = useState<Ingredient[]>([]);
+
   const [newName, setNewName] = useState('');
   const [newPrice, setNewPrice] = useState('');
-  const [newQuantity, setNewQuantity] = useState('');
-  const [newUnit, setNewUnit] = useState('顿');
+  const [newQuantity, setNewQuantity] = useState('1');
+  const [newUnit, setNewUnit] = useState('斤');
+  const [newIcon, setNewIcon] = useState('Utensils');
   const [newCategory, setNewCategory] = useState<'食材' | '调料'>('食材');
-  const [selectedIcon, setSelectedIcon] = useState('UtensilsCrossed');
 
-  // Group items by category
   const groupedItems = ingredients.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
@@ -47,204 +45,346 @@ const Inventory: React.FC = () => {
 
   const displayOrder: ('食材' | '调料')[] = ['食材', '调料'];
 
-  const handleMatchRecipes = () => {
-    setIsMatching(true);
-    setTimeout(() => {
-      setIsMatching(false);
-      navigate('/', { state: { filter: 'matched' } });
-    }, 1500);
+  const matchedRecipes = isMagicMatchOpen ? recipes.filter(recipe => {
+    const ownedIngredientsNames = ingredients
+      .filter(i => i.category === '食材' && (i.quantity || 0) > 0)
+      .map(i => i.name);
+    return recipe.ingredients.some(ri => ownedIngredientsNames.includes(ri.name));
+  }) : [];
+
+  const handleCategoryChange = (cat: '食材' | '调料') => {
+    setNewCategory(cat);
+    setNewIcon(cat === '食材' ? 'Utensils' : 'Flame');
   };
 
-  const handleAddItem = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName || !newPrice) {
-      alert('请填写名称和价格');
-      return;
-    }
+  const handleAddIngredient = () => {
+    if (!newName.trim()) return alert('请输入食材名称');
+    const priceNum = Number(newPrice) || 0;
+    const qtyNum = Number(newQuantity) || 0;
+    
+    const now = new Date();
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
     const newItem: Ingredient = {
       id: Date.now().toString(),
       name: newName,
-      price: parseFloat(newPrice),
-      quantity: newQuantity.trim() === '' ? null : parseFloat(newQuantity),
+      quantity: qtyNum,
       unit: newUnit,
+      price: priceNum,
       category: newCategory,
       lowStockThreshold: 1,
-      iconName: selectedIcon,
+      iconName: newIcon
     };
-
+    
     addIngredient(newItem);
+    addExpense({
+      date: now.toISOString().split('T')[0],
+      time: currentTime,
+      amount: priceNum * qtyNum,
+      type: 'purchase',
+      description: `${newName} (入库)`,
+      icon: newIcon
+    });
+
+    setIsModalOpen(false);
     setNewName('');
     setNewPrice('');
-    setNewQuantity('');
-    setSelectedIcon('UtensilsCrossed');
-    setIsModalOpen(false);
+    setNewQuantity('1');
+    setNewIcon('Utensils');
+    setNewCategory('食材');
   };
 
+  const openInventoryCheck = () => {
+    const bought = shoppingList.filter(item => item.checked);
+    if (bought.length === 0) return;
+    const initialItems: Ingredient[] = bought.map(item => ({
+      id: `bought-${item.id}`,
+      name: item.name,
+      price: item.price || 0,
+      quantity: 1,
+      unit: '斤',
+      category: '食材',
+      lowStockThreshold: 1,
+      iconName: 'Utensils'
+    }));
+    setTempInventoryItems(initialItems);
+    setIsInventoryCheckOpen(true);
+  };
+
+  const updateTempItem = (idx: number, fields: Partial<Ingredient>) => {
+    const newItems = [...tempInventoryItems];
+    newItems[idx] = { ...newItems[idx], ...fields };
+    setTempInventoryItems(newItems);
+  };
+
+  const confirmInventoryAddition = () => {
+    addBoughtToInventory(tempInventoryItems);
+    setIsInventoryCheckOpen(false);
+    setIsCartOpen(false);
+  };
+
+  const getIcon = (iconName: string, size = 18) => {
+    const IconComponent = (Icons as any)[iconName] || Icons.Utensils;
+    return <IconComponent size={size} strokeWidth={2.5} />;
+  };
+
+  const currentIconOptions = newCategory === '食材' ? INGREDIENT_ICONS : SEASONING_ICONS;
+
   return (
-    <div className="h-full flex flex-col animate-fade-in relative">
-      {/* 滚动区域 */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-16 pb-32">
-        <header className="mb-10 flex justify-between items-end">
-          <div>
-            <h1 className="text-[30px] font-extrabold tracking-tight text-[#1A1A1A] leading-tight">
-              我的<br/>食材库
-            </h1>
-            <p className="text-gray-400 mt-1 text-sm font-medium">管理您的厨房资产</p>
+    <div className="h-full flex flex-col bg-[#FEFFF9] relative">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-20 pb-32">
+        <header className="mb-8 flex justify-between items-center animate-fade-in">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 bg-[#FFF9E8] rounded-[18px] flex items-center justify-center text-[#FF5C00] shadow-sm border border-[#F0E6D2]">
+              <Sandwich size={24} strokeWidth={2.5} />
+            </div>
+            <div>
+              <h1 className="text-[24px] font-black tracking-tighter text-[#5D3A2F] leading-tight">
+                我的食材库
+              </h1>
+              <p className="text-[#B45309]/40 text-[10px] font-bold uppercase tracking-wider">STORAGE</p>
+            </div>
           </div>
           <button 
-            onClick={handleMatchRecipes}
-            disabled={isMatching}
-            className="w-14 h-14 rounded-[24px] bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white shadow-[0_10px_25px_rgba(255,122,40,0.3)] active:scale-90 transition-all disabled:opacity-50"
+            onClick={() => setIsMagicMatchOpen(true)}
+            className="w-10 h-10 rounded-xl bg-[#FFF9E8] flex items-center justify-center text-[#FF5C00] border border-[#F0E6D2] active:scale-90 transition-all"
           >
-            {isMatching ? <Loader2 size={24} className="animate-spin" /> : <Sparkles size={24} fill="white" />}
+            <Sparkles size={20} strokeWidth={2.5} />
           </button>
         </header>
 
-        <div className="space-y-10">
-          {displayOrder.map((category) => {
-            const categoryItems = groupedItems[category] || [];
-            return (
-              <div key={category}>
-                <div className="flex items-center gap-3 mb-5 px-1">
-                  <h3 className="text-[#1A1A1A] text-sm font-black tracking-[0.15em] uppercase">{category}</h3>
-                  <div className="h-[1px] flex-1 bg-gray-100"></div>
-                  <span className="text-[10px] font-bold text-gray-300 bg-gray-50 px-2 py-0.5 rounded-full">{categoryItems.length}</span>
+        <div className="space-y-8">
+          {displayOrder.length > 0 && ingredients.length > 0 ? (
+            displayOrder.map((category) => {
+              const categoryItems = groupedItems[category] || [];
+              if (categoryItems.length === 0) return null;
+              return (
+                <div key={category} className="animate-fade-in">
+                  <div className="flex items-center gap-2 mb-4 px-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C00]"></div>
+                    <h3 className="text-[#B45309]/60 text-[12px] font-black tracking-widest uppercase">
+                      {category}
+                    </h3>
+                  </div>
+                  <div className="grid gap-3">
+                    {categoryItems.map((item) => (
+                      <InventoryCard key={item.id} item={item} onDelete={() => removeIngredient(item.id)} />
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-4">
-                  {categoryItems.map((item) => (
-                    <InventoryCard 
-                      key={item.id} 
-                      item={item} 
-                      onDelete={() => removeIngredient(item.id)} 
-                    />
-                  ))}
-                  {categoryItems.length === 0 && (
-                    <div className="text-center py-8 border-2 border-dashed border-gray-50 rounded-[32px]">
-                      <p className="text-gray-300 text-[11px] font-bold italic tracking-wider">暂无{category}入库</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 opacity-80">
+              <LuluSearch size={160} />
+              <p className="text-[13px] font-black text-[#B45309]/40 italic mt-4">“粮草空虚，萝萝正在四处觅食...”</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {isMatching && (
-        <div className="absolute inset-0 z-[120] bg-white/90 backdrop-blur-xl flex flex-col items-center justify-center text-orange-500 animate-fade-in">
-          <Sparkles size={64} className="mb-6 animate-bounce" fill="currentColor" />
-          <h2 className="text-2xl font-black mb-2">正在智能匹配...</h2>
-          <p className="text-gray-400 font-bold text-sm tracking-widest">根据现有食材推荐今日大餐</p>
+      <div className="absolute bottom-[96px] left-0 right-0 px-6 flex items-center justify-center gap-[18px] z-50 animate-fade-in">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          style={{ height: '52px', width: '216px' }}
+          className="bg-[#FF5C00] text-white flex items-center justify-center gap-3 rounded-[22px] font-black text-base shadow-xl active:scale-95 transition-all border-b-4 border-[#E65100]"
+        >
+          <ChefHat size={22} strokeWidth={3} />
+          添加食材
+        </button>
+        <button 
+          onClick={() => setIsCartOpen(true)}
+          className="w-[52px] h-[52px] bg-white text-[#FF5C00] rounded-[22px] flex items-center justify-center border-2 border-[#FF5C00]/10 shadow-lg active:scale-95 transition-all relative"
+        >
+          <ShoppingCart size={22} strokeWidth={3} />
+          {shoppingList.length > 0 && (
+            <div className="absolute -top-1 -right-1 bg-[#FF5C00] text-white min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center font-black text-[10px] shadow-sm">
+              {shoppingList.length}
+            </div>
+          )}
+        </button>
+      </div>
+
+      {/* 智选匹配食谱弹窗 */}
+      {isMagicMatchOpen && (
+        <div className="absolute inset-0 z-[400] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
+          <div className="bg-[#FEFFF9] w-full h-[80%] rounded-t-[45px] p-8 animate-slide-up flex flex-col shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <Sparkles size={24} className="text-[#FF5C00]" />
+                <h2 className="text-xl font-black text-[#5D3A2F]">根据库存匹配</h2>
+              </div>
+              <button onClick={() => setIsMagicMatchOpen(false)} className="p-2.5 bg-[#FFF3D3] rounded-2xl text-[#FF5C00]"><X size={20} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-4">
+              {matchedRecipes.length > 0 ? (
+                matchedRecipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} />)
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 opacity-80 text-[#B45309]">
+                  <LuluSearch size={140} className="mb-4" />
+                  <p className="font-black italic text-sm opacity-40">“库存见底，萝萝也难为无米之炊...”</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* 固定在底部的操作栏 - 此时它会完美出现在导航栏上方 */}
-      <div className="absolute bottom-28 left-0 right-0 px-6 flex items-center gap-4 z-50">
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex-1 h-16 bg-black text-white flex items-center justify-center rounded-[24px] font-black text-base shadow-[0_15px_35px_rgba(0,0,0,0.2)] active:scale-95 transition-all"
-        >
-          添加食材
-        </button>
-        <button className="w-16 h-16 bg-white border border-gray-100 rounded-[24px] flex items-center justify-center text-gray-800 shadow-[0_10px_25px_rgba(0,0,0,0.03)] active:scale-95 transition-all">
-          <ShoppingCart size={24} strokeWidth={2.5} />
-        </button>
-      </div>
-
-      {/* 入库模态框 */}
-      {isModalOpen && (
-        <div className="absolute inset-0 z-[130] flex items-end justify-center px-4 pb-8 bg-black/40 backdrop-blur-md animate-fade-in">
-          <div className="bg-white w-full rounded-[48px] p-8 shadow-2xl animate-slide-up max-h-[90%] overflow-y-auto no-scrollbar">
+      {/* 待购清单弹窗 */}
+      {isCartOpen && (
+        <div className="absolute inset-0 z-[200] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
+          <div className="bg-[#FEFFF9] w-full h-[75%] rounded-t-[45px] p-8 animate-slide-up flex flex-col shadow-2xl relative">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold tracking-tight">食材入库</h2>
-              <button onClick={() => setIsModalOpen(false)} className="bg-gray-100 p-2 rounded-full text-gray-400 active:scale-90 transition-all">
-                <X size={20} strokeWidth={3} />
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#FFF3D3] rounded-2xl flex items-center justify-center text-[#FF5C00]">
+                  <ShoppingCart size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-[#5D3A2F]">待购清单</h2>
+              </div>
+              <button onClick={() => setIsCartOpen(false)} className="bg-[#FFF3D3] p-2.5 rounded-2xl text-[#FF5C00] active:scale-90 transition-all">
+                <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleAddItem} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">名称</label>
-                <input 
-                  autoFocus
-                  type="text" 
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full bg-gray-50 border-2 border-transparent focus:border-orange-100 focus:bg-white rounded-2xl px-6 py-4 text-sm font-bold text-gray-800 transition-all outline-none"
-                  placeholder="如：日本 A5 和牛"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">选择图标</label>
-                <div className="grid grid-cols-6 gap-2 bg-gray-50 p-4 rounded-3xl">
-                  {ICON_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.name}
-                      type="button"
-                      onClick={() => setSelectedIcon(opt.name)}
-                      className={`aspect-square rounded-xl flex items-center justify-center transition-all duration-300 ${
-                        selectedIcon === opt.name 
-                        ? 'bg-black text-white shadow-lg scale-110' 
-                        : 'bg-white text-gray-300 hover:text-black'
-                      }`}
-                    >
-                      <opt.icon size={18} />
-                    </button>
-                  ))}
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-3">
+              {shoppingList.length > 0 ? (
+                shoppingList.map((item) => (
+                  <button 
+                    key={item.id} 
+                    onClick={() => toggleShoppingItem(item.id)}
+                    className={`w-full bg-white border p-4 rounded-2xl flex items-center justify-between shadow-sm transition-all ${
+                      item.checked ? 'border-green-500 bg-green-50/30' : 'border-[#F0E6D2]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`transition-colors ${item.checked ? 'text-green-500' : 'text-[#B45309]/20'}`}>
+                        {item.checked ? <CheckCircle2 size={22} /> : <div className="w-[22px] h-[22px] border-2 border-current rounded-full" />}
+                      </div>
+                      <span className={`font-bold transition-all ${item.checked ? 'text-green-700 line-through opacity-50' : 'text-[#5D3A2F]'}`}>
+                        {item.name}
+                      </span>
+                    </div>
+                    {item.price && <span className="text-[12px] font-black text-[#FF5C00]">¥{item.price}</span>}
+                  </button>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 opacity-80 text-[#B45309]">
+                  <LuluCart size={150} className="mb-4" />
+                  <p className="text-[13px] font-black opacity-30 italic">“背筐已空，萝萝还没想好买什么...”</p>
                 </div>
-              </div>
+              )}
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">成本 (¥)</label>
-                  <input 
-                    type="number" 
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-transparent focus:border-orange-100 focus:bg-white rounded-2xl px-6 py-4 text-sm font-bold text-gray-800 transition-all outline-none"
-                    placeholder="0"
-                  />
+            <div className="grid grid-cols-2 gap-3 mt-6">
+              <button onClick={clearShoppingList} className="bg-[#B45309]/10 text-[#B45309] py-5 rounded-[24px] font-black text-sm flex items-center justify-center gap-2">
+                <Trash2 size={18} /> 清空清单
+              </button>
+              <button onClick={openInventoryCheck} disabled={!shoppingList.some(i => i.checked)} className="bg-[#5D3A2F] text-white py-5 rounded-[24px] font-black text-sm shadow-xl flex items-center justify-center gap-2 disabled:opacity-50">
+                <PackagePlus size={18} /> 核对并入库
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 添加食材弹窗 */}
+      {isModalOpen && (
+        <div className="absolute inset-0 z-[500] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
+          <div className="bg-[#FEFFF9] w-full h-[85%] rounded-t-[45px] p-8 animate-slide-up flex flex-col shadow-2xl overflow-hidden">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-[#5D3A2F] tracking-tight">添加新食材</h2>
+              <button onClick={() => setIsModalOpen(false)} className="bg-[#FFF9E8] p-2 rounded-xl text-[#FF5C00]"><X size={24} /></button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 pb-20">
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <button onClick={() => handleCategoryChange('食材')} className={`flex-1 py-3 rounded-xl font-black text-sm transition-all ${newCategory === '食材' ? 'bg-[#FF5C00] text-white' : 'bg-[#FFF9E8] text-[#B45309]/40'}`}>食材</button>
+                  <button onClick={() => handleCategoryChange('调料')} className={`flex-1 py-3 rounded-xl font-black text-sm transition-all ${newCategory === '调料' ? 'bg-[#FF5C00] text-white' : 'bg-[#FFF9E8] text-[#B45309]/40'}`}>调料</button>
                 </div>
+                
+                <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="食材名称 (如: 五花肉)" className="w-full bg-white border border-[#F0E6D2] px-6 py-4 rounded-2xl font-black text-[#5D3A2F] outline-none shadow-sm" />
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-[#B45309]/40 px-2 uppercase tracking-widest">单价 ¥</label>
+                    <input type="number" value={newPrice} onChange={e => setNewPrice(e.target.value)} placeholder="0.00" className="w-full bg-white border border-[#F0E6D2] px-5 py-3 rounded-2xl font-bold text-[#FF5C00] outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-[#B45309]/40 px-2 uppercase tracking-widest">数量与单位</label>
+                    <div className="flex border border-[#F0E6D2] rounded-2xl overflow-hidden bg-white">
+                      <input type="number" value={newQuantity} onChange={e => setNewQuantity(e.target.value)} className="w-full bg-transparent px-4 py-3 font-bold text-[#5D3A2F] outline-none text-right" />
+                      <select value={newUnit} onChange={e => setNewUnit(e.target.value)} className="bg-transparent font-black text-xs text-[#FF5C00] px-3 outline-none">
+                        {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">库存量</label>
-                  <div className="flex bg-gray-50 rounded-2xl p-1 border-2 border-transparent focus-within:border-orange-100 focus-within:bg-white transition-all">
-                    <input 
-                      type="number" 
-                      value={newQuantity}
-                      onChange={(e) => setNewQuantity(e.target.value)}
-                      className="flex-1 bg-transparent border-none px-4 py-3 text-sm font-bold focus:outline-none"
-                    />
-                    <select 
-                      value={newUnit}
-                      onChange={(e) => setNewUnit(e.target.value)}
-                      className="bg-white rounded-xl text-[10px] font-black px-3 py-1 outline-none text-orange-500 shadow-sm"
-                    >
-                      <option value="顿">顿</option>
-                      <option value="g">g</option>
-                      <option value="瓶">瓶</option>
-                      <option value="个">个</option>
-                    </select>
+                  <label className="text-[10px] font-black text-[#B45309]/40 px-2 uppercase tracking-widest">挑选图标</label>
+                  <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2">
+                    {currentIconOptions.map(icon => (
+                      <button key={icon} onClick={() => setNewIcon(icon)} className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${newIcon === icon ? 'bg-[#FF5C00] text-white' : 'bg-white border border-[#F0E6D2] text-[#B45309]/20'}`}>{getIcon(icon, 20)}</button>
+                    ))}
                   </div>
                 </div>
               </div>
+            </div>
 
-              <button 
-                type="submit"
-                className="w-full bg-black text-white py-5 rounded-[24px] font-bold text-base shadow-[0_20px_40px_rgba(0,0,0,0.15)] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
-              >
-                <Check size={20} strokeWidth={3} />
-                确认入库
-              </button>
-            </form>
+            <button onClick={handleAddIngredient} className="w-full bg-[#FF5C00] text-white py-5 rounded-[24px] font-black text-lg shadow-xl shadow-[#FF5C00]/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+              <Check size={22} strokeWidth={3} /> 确认添加萝
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 核对入库弹窗 */}
+      {isInventoryCheckOpen && (
+        <div className="absolute inset-0 z-[600] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
+          <div className="bg-[#FEFFF9] w-full h-[85%] rounded-t-[45px] p-8 animate-slide-up flex flex-col shadow-2xl">
+             <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-[#5D3A2F] tracking-tight">核对入库清单</h2>
+              <button onClick={() => setIsInventoryCheckOpen(false)} className="bg-[#FFF9E8] p-2 rounded-xl text-[#FF5C00]"><X size={24} /></button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 pb-20">
+              {tempInventoryItems.map((item, idx) => (
+                <div key={item.id} className="bg-white border border-[#F0E6D2] p-5 rounded-3xl space-y-4 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#FFF9E8] rounded-xl flex items-center justify-center text-[#FF5C00]">{getIcon(item.iconName || 'Utensils', 18)}</div>
+                    <span className="font-black text-[#5D3A2F]">{item.name}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-black text-[#B45309]/40 px-1 uppercase">总价 ¥</span>
+                      <input type="number" value={item.price} onChange={e => updateTempItem(idx, { price: Number(e.target.value) })} className="w-full bg-[#FFF9E8]/50 border-none rounded-xl px-4 py-2.5 font-bold text-[#FF5C00] outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-black text-[#B45309]/40 px-1 uppercase">入库量</span>
+                      <div className="flex bg-[#FFF9E8]/50 rounded-xl overflow-hidden">
+                        <input type="number" value={item.quantity || ''} onChange={e => updateTempItem(idx, { quantity: Number(e.target.value) })} className="w-full bg-transparent px-3 py-2.5 font-bold text-[#5D3A2F] outline-none text-right" />
+                        <select value={item.unit} onChange={e => updateTempItem(idx, { unit: e.target.value })} className="bg-transparent text-[10px] font-black text-[#FF5C00] px-2 outline-none">
+                          {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={confirmInventoryAddition} className="w-full bg-[#5D3A2F] text-white py-5 rounded-[24px] font-black text-lg shadow-xl active:scale-95 transition-all">确认批量入库</button>
           </div>
         </div>
       )}
 
       <style>{`
-        @keyframes slide-up { from { transform: translateY(150px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slide-up { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .animate-float { animation: float 3s ease-in-out infinite; }
       `}</style>
     </div>
   );

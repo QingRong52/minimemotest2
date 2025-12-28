@@ -11,7 +11,7 @@
       html, body {
         margin: 0;
         padding: 0;
-        background-color: #0F0F0F;
+        background-color: #F3E5D8;
         height: 100%;
         display: flex;
         justify-content: center;
@@ -19,48 +19,20 @@
         overflow: hidden;
       }
 
-      /* 模拟手机容器 */
       #root {
         width: 375px;
         height: 812px;
-        background-color: #FDFDFD;
+        background-color: #FEFFF9;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7);
-        border: 10px solid #1A1A1A;
-        border-radius: 50px;
+        box-shadow: 0 50px 100px -20px rgba(180,83,9,0.15);
+        border: 12px solid #5D3A2F;
+        border-radius: 60px;
         font-family: 'Outfit', sans-serif;
-        color: #1A1A1A;
+        color: #B45309;
       }
 
-      /* 模拟灵动岛与状态栏 */
-      #root::before {
-        content: "";
-        position: absolute;
-        top: 8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100px;
-        height: 28px;
-        background: #000;
-        border-radius: 20px;
-        z-index: 100;
-      }
-
-      /* 模拟状态栏文字 */
-      .status-bar {
-        position: absolute;
-        top: 14px;
-        left: 24px;
-        right: 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 11px;
-        font-weight: 700;
-        z-index: 99;
-        color: #1A1A1A;
-      }
+      /* 已移除 #root::before (刘海) 和 .status-bar (状态栏) */
 
       .no-scrollbar::-webkit-scrollbar { display: none; }
       
@@ -73,15 +45,8 @@
       }
 
       @media (max-width: 500px) {
-        body { background-color: #FDFDFD; }
-        #root {
-          width: 100vw;
-          height: 100vh;
-          border: none;
-          border-radius: 0;
-          box-shadow: none;
-        }
-        #root::before, .status-bar { display: none; }
+        body { background-color: #FEFFF9; }
+        #root { width: 100vw; height: 100vh; border: none; border-radius: 0; box-shadow: none; }
       }
     </style>
   <script type="importmap">
@@ -99,13 +64,7 @@
 </head>
   <body>
     <div id="root">
-      <div class="status-bar">
-        <span>9:41</span>
-        <div style="display: flex; gap: 4px; align-items: center;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20zM12 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/></svg>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 22h20V2L2 22z"/></svg>
-        </div>
-      </div>
+      <!-- 内部不再需要状态栏 -->
     </div>
     <script type="module" src="/index.tsx"></script>
   </body>
