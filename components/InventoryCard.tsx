@@ -14,6 +14,7 @@ const CategoryIcon = ({ item }: { item: Ingredient }) => {
   return <Icon className="text-[#F59E0B]" size={20} strokeWidth={2.5} />;
 };
 
+// Fixed the component definition to correctly use React.FC with props interface
 const InventoryCard: React.FC<InventoryCardProps> = ({ item, onDelete }) => {
   return (
     <div className="bg-[#FFF3D3] rounded-[24px] p-3 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] group relative border border-[#FBF4E4]">
@@ -40,9 +41,12 @@ const InventoryCard: React.FC<InventoryCardProps> = ({ item, onDelete }) => {
       </div>
       
       {item.quantity !== null && (
-        <div className="bg-white/60 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/40 shadow-sm">
-          <span className="text-[12px] font-black text-[#FF5C00] whitespace-nowrap">
-            {item.quantity}<small className="ml-0.5 opacity-60 font-bold">{item.unit}</small>
+        <div 
+          style={{ width: '52px', height: '28px' }}
+          className="bg-[#FFA61D] rounded-full shadow-sm flex items-center justify-center shrink-0 overflow-hidden"
+        >
+          <span className="text-[12px] text-white whitespace-nowrap leading-none">
+            {item.quantity}<small className="ml-0.5 opacity-90">{item.unit}</small>
           </span>
         </div>
       )}

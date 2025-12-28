@@ -75,7 +75,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
             <h3 className="text-[#5D3A2F] text-[15px] font-black leading-tight truncate pr-4 mb-1">
               {recipe.name}
             </h3>
-            <p className="text-[#B45309]/50 text-[10px] font-medium leading-relaxed line-clamp-2">
+            <p className="text-[#B45309]/50 text-[11px] font-medium leading-relaxed line-clamp-2">
               食材：{recipe.ingredients.length > 0 ? recipe.ingredients.map(i => i.name).join('、') : '精心挑选的特级食材'}
             </p>
           </div>
@@ -101,48 +101,48 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
         </div>
       </div>
 
-      {/* 确认弹窗：回归温馨风格的卡片式设计 */}
+      {/* 确认弹窗：极致沉浸黑色全屏遮罩 (强制覆盖底栏和烹饪锅) */}
       {showConfirm && (
         <div 
-          className="fixed inset-0 z-[2000] flex items-center justify-center bg-[#5D3A2F]/10 backdrop-blur-[8px] animate-fade-in px-6"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-[12px] animate-fade-in px-10"
           onClick={cancelDelete}
         >
           <div 
-            className="bg-white rounded-[40px] w-full max-w-[320px] p-8 shadow-[0_20px_60px_-10px_rgba(93,58,47,0.2)] border border-white relative overflow-hidden flex flex-col items-center animate-scale-up"
+            className="bg-white rounded-[40px] w-full max-w-[300px] p-7 shadow-[0_40px_100px_rgba(0,0,0,0.6)] border border-white/40 relative overflow-hidden flex flex-col items-center animate-modal-pop"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 卡片背景装饰 */}
-            <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-[#FFF9E8] to-transparent pointer-events-none"></div>
+            {/* 顶层装饰 */}
+            <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-[#FFF9E8] to-transparent pointer-events-none opacity-60"></div>
             
-            {/* 萝萝形象：保持颤抖但色彩柔和 */}
-            <div className="relative z-10 mb-6 mt-2 animate-tremble">
-              <LuluScared size={100} />
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#FF5E57] rounded-full flex items-center justify-center text-white shadow-sm animate-bounce">
+            {/* 萝萝形象 - 尺寸微缩 */}
+            <div className="relative z-10 mb-5 mt-2 animate-tremble">
+              <LuluScared size={85} />
+              <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#FF5E57] rounded-full flex items-center justify-center text-white shadow-lg animate-pulse">
                 <Info size={14} strokeWidth={3} />
               </div>
             </div>
             
             <div className="text-center relative z-10">
-              <h3 className="text-[20px] font-black text-[#5D3A2F] mb-2 tracking-tight">要把秘籍丢掉吗？</h3>
-              <p className="text-[13px] font-medium text-[#B45309]/50 leading-relaxed mb-8">
+              <h3 className="text-[19px] font-black text-[#5D3A2F] mb-2 tracking-tight">要把秘籍丢掉吗？</h3>
+              <p className="text-[13px] font-medium text-[#B45309]/50 leading-relaxed mb-6 px-4">
                 “这卷秘籍里还有<br/>萝萝没学会的奥义萝...”
               </p>
             </div>
             
             <div className="flex flex-col gap-3 w-full relative z-10">
-              {/* 取消按钮：主要行动点，温润色调 */}
+              {/* 保留按钮 */}
               <button 
                 onClick={cancelDelete}
-                className="w-full py-4 bg-[#FF9A2E] text-white rounded-[22px] font-black text-[15px] shadow-[0_8px_20px_-4px_rgba(255,154,46,0.4)] active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 bg-[#FF5C00] text-white rounded-[22px] font-black text-[15px] shadow-[0_10px_25px_-5px_rgba(255,92,0,0.4)] active:scale-[0.96] transition-all flex items-center justify-center gap-2 border-b-4 border-[#E65100]"
               >
                 <Heart size={16} fill="white" />
                 那再留一会萝
               </button>
 
-              {/* 确认按钮：次要行动点，低调深色 */}
+              {/* 确定删除 */}
               <button 
                 onClick={confirmDelete}
-                className="w-full py-4 bg-[#B45309]/5 text-[#B45309]/40 rounded-[22px] font-bold text-[14px] hover:bg-red-50 hover:text-red-400 active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 bg-[#B45309]/5 text-[#B45309]/40 rounded-[22px] font-bold text-[14px] hover:text-red-500 transition-all active:scale-[0.96] flex items-center justify-center gap-2"
               >
                 <Trash2 size={14} />
                 残忍丢弃
@@ -162,18 +162,25 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
         }
         @keyframes tremble {
           0%, 100% { transform: translate(0, 0); }
-          10%, 30%, 50%, 70%, 90% { transform: translate(-1.5px, 0.5px); }
-          20%, 40%, 60%, 80% { transform: translate(1.5px, -0.5px); }
+          10%, 30%, 50%, 70%, 90% { transform: translate(-1px, 0.5px); }
+          20%, 40%, 60%, 80% { transform: translate(1px, -0.5px); }
         }
         .animate-tremble {
-          animation: tremble 0.6s infinite linear;
+          animation: tremble 0.8s infinite linear;
         }
-        @keyframes scale-up {
+        @keyframes modal-pop {
           from { transform: scale(0.9) translateY(20px); opacity: 0; }
           to { transform: scale(1) translateY(0); opacity: 1; }
         }
-        .animate-scale-up {
-          animation: scale-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        .animate-modal-pop {
+          animation: modal-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out forwards;
         }
       `}</style>
     </>

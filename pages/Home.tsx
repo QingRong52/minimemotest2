@@ -6,7 +6,7 @@ import FloatingPot from '../components/FloatingPot';
 import { LuluChef } from '../components/LuluIcons';
 import { 
   Plus, Settings2, X, ChefHat, 
-  ChevronUp, ChevronDown, Trash2, Edit2, Check
+  ChevronUp, ChevronDown, Trash2, Edit2, Check, LayoutGrid
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useKitchen, Category } from '../KitchenContext';
@@ -67,7 +67,7 @@ const Home: React.FC = () => {
       <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-[72px] pb-32">
         <header className="flex justify-between items-end mb-8 animate-fade-in">
           <div className="space-y-1">
-            <h1 className="text-[28px] font-black text-[#5D3A2F] leading-none tracking-tighter">早上好</h1>
+            <h1 className="text-[28px] font-black text-[#5D3A2F] leading-none tracking-tighter">厨神好</h1>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C00]/30"></div>
               <p className="text-[#B45309]/50 text-[12px] font-medium tracking-tight">陛下请点单</p>
@@ -126,7 +126,7 @@ const Home: React.FC = () => {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 opacity-80 animate-fade-in">
               <LuluChef size={140} className="mb-4" />
-              <p className="text-[13px] font-black text-[#B45309]/40 italic">“萝萝还在钻研这门流派的奥义...”</p>
+              <p className="text-[13px] font-black text-[#B45309]/40">“萝萝还在钻研这门流派的奥义...”</p>
             </div>
           )}
         </div>
@@ -134,119 +134,130 @@ const Home: React.FC = () => {
 
       <FloatingPot />
 
-      {/* 分类中心面板 */}
+      {/* 分类中心弹窗 - 重构为带有半透明背景的抽屉模式 */}
       {isCategoryManagerOpen && (
-        <div className="absolute inset-0 z-[400] flex flex-col bg-[#FEFFF9] animate-fade-in">
-          <div className="sticky top-0 z-20 px-6 pt-16 pb-4 bg-white border-b border-[#F0E6D2] flex justify-between items-center">
-            <div>
-              <h2 className="text-[22px] font-black text-[#5D3A2F] tracking-tight">分类中心</h2>
-              <p className="text-[10px] font-bold text-[#B45309]/40 uppercase tracking-widest mt-0.5">Edit Structure</p>
-            </div>
-            <button 
-              onClick={() => { setIsCategoryManagerOpen(false); setEditingCategory(null); setNewCatLabel(''); }}
-              className="w-10 h-10 bg-[#FFF9E8] rounded-xl flex items-center justify-center text-[#FF5C00] active:scale-90 transition-all border border-[#F0E6D2]"
-            >
-              <X size={20} strokeWidth={2.5} />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto no-scrollbar px-6 py-6 pb-20">
-            <div id="edit-form-anchor" className="bg-[#FFF9E8]/30 border border-[#F0E6D2] rounded-2xl p-6 mb-8 transition-all">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C00]"></div>
-                <h3 className="text-[#5D3A2F] font-bold text-xs uppercase tracking-wider">
-                  {editingCategory ? '修改当前分类' : '添加新分类'}
-                </h3>
+        <div className="absolute inset-0 z-[400] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
+          <div className="bg-[#FEFFF9] w-full h-[85%] rounded-t-[50px] p-8 animate-slide-up flex flex-col shadow-[0_-20px_80px_rgba(0,0,0,0.15)] border-t border-white/40">
+            
+            {/* 顶栏标准化布局 */}
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-[#F0E6D2]">
+                  <LayoutGrid size={24} className="text-[#FF5C00]" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h2 className="text-[22px] font-black text-[#5D3A2F] tracking-tight leading-none">分类中心</h2>
+                  <p className="text-[10px] font-bold text-[#B45309]/30 uppercase tracking-[0.2em] mt-1.5">Manage Categories</p>
+                </div>
               </div>
-              
-              <div className="flex flex-wrap gap-2.5 mb-6">
-                {ICON_OPTIONS.map(icon => (
-                  <button
-                    key={icon}
-                    onClick={() => setNewCatIcon(icon)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                      newCatIcon === icon 
-                      ? 'bg-[#FF5C00] text-white' 
-                      : 'bg-white text-[#B45309]/30 border border-[#F0E6D2]'
+              <button 
+                onClick={() => { setIsCategoryManagerOpen(false); setEditingCategory(null); setNewCatLabel(''); }}
+                className="w-10 h-10 bg-[#FFF9E8] rounded-xl flex items-center justify-center text-[#FF5C00] active:scale-90 transition-all border border-[#F0E6D2]"
+              >
+                <X size={20} strokeWidth={3} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-8 pb-10 px-1">
+              {/* 编辑/添加卡片 - 采用浮雕质感 */}
+              <div id="edit-form-anchor" className="bg-white border-2 border-[#F0E6D2] rounded-[35px] p-6 shadow-sm transition-all focus-within:border-[#FF5C00]/30">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C00]"></div>
+                  <h3 className="text-[#B45309]/40 font-black text-[10px] uppercase tracking-widest">
+                    {editingCategory ? 'Edit Entry' : 'New Entry'}
+                  </h3>
+                </div>
+                
+                <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-5 mb-5 border-b border-[#F0E6D2]/50">
+                  {ICON_OPTIONS.map(icon => (
+                    <button
+                      key={icon}
+                      onClick={() => setNewCatIcon(icon)}
+                      className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 transition-all duration-300 ${
+                        newCatIcon === icon 
+                        ? 'bg-[#FF5C00] text-white shadow-lg shadow-[#FF5C00]/20 scale-110' 
+                        : 'bg-[#FFF9E8]/50 text-[#B45309]/30 border border-[#F0E6D2]'
+                      }`}
+                    >
+                      {getIcon(icon, 20)}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <input 
+                    type="text" 
+                    value={newCatLabel} 
+                    onChange={(e) => setNewCatLabel(e.target.value)}
+                    placeholder="给新分类起个霸气的名字..."
+                    className="w-full bg-[#FFF9E8]/30 border border-[#F0E6D2] px-6 py-5 rounded-[22px] font-black text-[#5D3A2F] outline-none shadow-inner text-base"
+                  />
+                  <button 
+                    onClick={handleSaveCategory}
+                    disabled={!newCatLabel.trim()}
+                    className={`w-full h-15 rounded-[22px] font-black text-[16px] flex items-center justify-center gap-2 transition-all active:scale-[0.98] border-b-4 py-4 ${
+                      newCatLabel.trim() 
+                      ? 'bg-[#FF5C00] text-white border-[#E65100] shadow-xl' 
+                      : 'bg-[#B45309]/10 text-[#B45309]/30 border-[#B45309]/5 cursor-not-allowed'
                     }`}
                   >
-                    {getIcon(icon, 18)}
+                    <Check size={22} strokeWidth={3} />
+                    <span>{editingCategory ? '确认修改萝' : '现在添加萝'}</span>
                   </button>
-                ))}
+                </div>
               </div>
 
-              <div className="flex flex-col gap-3">
-                <input 
-                  type="text" 
-                  value={newCatLabel} 
-                  onChange={(e) => setNewCatLabel(e.target.value)}
-                  placeholder="分类名称..."
-                  className="w-full bg-white border border-[#F0E6D2] px-5 py-4 rounded-xl font-bold text-[#5D3A2F] outline-none placeholder-[#B45309]/20 text-sm"
-                />
-                <button 
-                  onClick={handleSaveCategory}
-                  disabled={!newCatLabel.trim()}
-                  className={`w-full py-4 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-95 ${
-                    newCatLabel.trim() 
-                    ? 'bg-[#FF5C00] text-white shadow-sm' 
-                    : 'bg-[#B45309]/10 text-[#B45309]/30 cursor-not-allowed'
-                  }`}
-                >
-                  <Check size={18} strokeWidth={3} />
-                  <span>{editingCategory ? '更新保存' : '立即添加'}</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="text-[#B45309]/30 font-bold text-[10px] uppercase tracking-widest px-1 mb-2">已定义的分类</h3>
-              {categories.map((cat, idx) => {
-                const isEditing = editingCategory?.id === cat.id;
-                return (
-                  <div 
-                    key={cat.id} 
-                    className={`bg-white border p-4 rounded-2xl flex items-center justify-between transition-all ${
-                      isEditing ? 'border-[#FF5C00] bg-[#FF5C00]/5' : 'border-[#F0E6D2]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        isEditing ? 'bg-[#FF5C00] text-white' : 'bg-[#FFF9E8] text-[#FF5C00]'
-                      }`}>
-                        {getIcon(cat.icon, 20)}
+              {/* 已定义列表 - 间距优化 */}
+              <div className="space-y-3.5">
+                <label className="text-[10px] font-black text-[#B45309]/30 uppercase tracking-[0.25em] px-2 block mb-2">已定义的派系</label>
+                {categories.map((cat, idx) => {
+                  const isEditing = editingCategory?.id === cat.id;
+                  return (
+                    <div 
+                      key={cat.id} 
+                      className={`bg-white border-2 p-4.5 rounded-[30px] flex items-center justify-between transition-all duration-300 ${
+                        isEditing ? 'border-[#FF5C00] shadow-md scale-[1.02]' : 'border-[#F0E6D2] shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4 px-1">
+                        <div className={`w-12 h-12 rounded-[20px] flex items-center justify-center transition-all ${
+                          isEditing ? 'bg-[#FF5C00] text-white shadow-lg' : 'bg-[#FFF9E8] text-[#FF5C00]'
+                        }`}>
+                          {getIcon(cat.icon, 22)}
+                        </div>
+                        <span className={`font-black text-[17px] ${isEditing ? 'text-[#FF5C00]' : 'text-[#5D3A2F]'}`}>
+                          {cat.label}
+                        </span>
                       </div>
-                      <span className={`font-bold text-sm ${isEditing ? 'text-[#FF5C00]' : 'text-[#5D3A2F]'}`}>
-                        {cat.label}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <button 
-                        onClick={() => startEditCategory(cat)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          isEditing ? 'bg-white text-[#FF5C00] shadow-sm' : 'text-[#B45309]/30 hover:text-[#FF5C00]'
-                        }`}
-                      >
-                        <Edit2 size={16} />
-                      </button>
                       
-                      {cat.id !== '全部' && (
+                      <div className="flex items-center gap-1.5">
                         <button 
-                          onClick={() => deleteCategory(cat.id)}
-                          className="p-2 text-red-200 hover:text-red-400 transition-all"
+                          onClick={() => startEditCategory(cat)}
+                          className={`p-2.5 rounded-xl transition-all active:scale-90 ${
+                            isEditing ? 'bg-[#FF5C00]/10 text-[#FF5C00]' : 'text-[#B45309]/10 hover:text-[#FF5C00]'
+                          }`}
                         >
-                          <Trash2 size={16} />
+                          <Edit2 size={18} strokeWidth={2.5} />
                         </button>
-                      )}
+                        
+                        {cat.id !== '全部' && (
+                          <button 
+                            onClick={() => deleteCategory(cat.id)}
+                            className="p-2.5 text-[#B45309]/10 hover:text-red-500 active:scale-90 transition-all"
+                          >
+                            <Trash2 size={18} strokeWidth={2.5} />
+                          </button>
+                        )}
 
-                      <div className="flex flex-col border-l border-[#F0E6D2] pl-2 ml-1">
-                        <button onClick={() => handleMoveCategory(idx, 'up')} disabled={idx === 0} className="text-[#B45309]/20 hover:text-[#FF5C00] disabled:opacity-0"><ChevronUp size={16} /></button>
-                        <button onClick={() => handleMoveCategory(idx, 'down')} disabled={idx === categories.length - 1} className="text-[#B45309]/20 hover:text-[#FF5C00] disabled:opacity-0"><ChevronDown size={16} /></button>
+                        <div className="flex flex-col border-l-2 border-[#F0E6D2]/50 pl-2 ml-1">
+                          <button onClick={() => handleMoveCategory(idx, 'up')} disabled={idx === 0} className="text-[#B45309]/20 active:scale-125 disabled:opacity-0 transition-all p-1"><ChevronUp size={16} strokeWidth={3} /></button>
+                          <button onClick={() => handleMoveCategory(idx, 'down')} disabled={idx === categories.length - 1} className="text-[#B45309]/20 active:scale-125 disabled:opacity-0 transition-all p-1"><ChevronDown size={16} strokeWidth={3} /></button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -256,13 +267,6 @@ const Home: React.FC = () => {
         @keyframes slide-up { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
       `}</style>
     </div>
   );

@@ -19,8 +19,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
-      <main className="flex-1 relative overflow-hidden">
+    <div className="h-full flex flex-col bg-[#FEFFF9] relative">
+      {/* 移除 main 容器的 relative，释放 fixed 元素的堆叠限制 */}
+      <main className="flex-1">
         {children}
       </main>
 
