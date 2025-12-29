@@ -107,24 +107,34 @@ const Finance: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
-      {/* 头部固定 */}
-      <header className="flex justify-between items-center px-6 pt-12 pb-6 shrink-0 bg-[#FEFFF9]/80 backdrop-blur-md z-10">
+      {/* 头部固定区域 */}
+      <header className="flex justify-between items-center px-6 pt-12 pb-6 shrink-0 bg-[#FEFFF9] z-20 border-b border-[#F0E6D2]/20">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 bg-[#FFF9E8] rounded-[18px] flex items-center justify-center text-[#FF5C00] shadow-sm border border-[#F0E6D2]">
             <PieChart size={24} strokeWidth={2.5} />
           </div>
-          <h1 className="text-[24px] font-black text-[#5D3A2F]">厨神账本</h1>
+          <h1 className="text-[24px] font-black text-[#5D3A2F] tracking-tighter">厨神账本</h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => { setTempBudget(monthlyBudget.toString()); setIsBudgetModalOpen(true); }} className="w-10 h-10 rounded-xl bg-[#FFF9E8] flex items-center justify-center text-[#FF5C00] border border-[#F0E6D2] active:scale-90 shadow-sm"><Wallet size={20} /></button>
-          <button onClick={() => setIsLogModalOpen(true)} className="w-10 h-10 rounded-xl bg-[#FF5C00] flex items-center justify-center text-white shadow-lg active:scale-90"><Plus size={20} strokeWidth={3} /></button>
+          <button 
+            onClick={() => { setTempBudget(monthlyBudget.toString()); setIsBudgetModalOpen(true); }} 
+            className="w-10 h-10 rounded-xl bg-[#FFF9E8] flex items-center justify-center text-[#FF5C00] border border-[#F0E6D2] active:scale-90 shadow-sm transition-transform"
+          >
+            <Wallet size={20} />
+          </button>
+          <button 
+            onClick={() => setIsLogModalOpen(true)} 
+            className="w-10 h-10 rounded-xl bg-[#FF5C00] flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform"
+          >
+            <Plus size={20} strokeWidth={3} />
+          </button>
         </div>
       </header>
 
-      {/* 滚动区域 */}
-      <div className="flex-1 overflow-y-auto smooth-scroll no-scrollbar px-6 pb-40">
+      {/* 滚动记录明细区域 - 核心修复点 */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden smooth-scroll no-scrollbar px-6 pt-6 pb-40 touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
         {/* 预算仪表盘 */}
-        <div className="bg-white p-6 rounded-[35px] border border-[#F0E6D2] shadow-sm mb-8 relative">
+        <div className="bg-white p-6 rounded-[35px] border border-[#F0E6D2] shadow-sm mb-8 relative animate-fade-in">
           <div className="flex justify-between items-start mb-6">
             <div className="flex flex-col">
               <span className="text-[#B45309]/50 text-[10px] font-black uppercase tracking-widest mb-1">本期预算 (15日结)</span>
@@ -149,8 +159,8 @@ const Finance: React.FC = () => {
           </div>
         </div>
 
-        {/* 日历 */}
-        <div className="bg-white p-6 rounded-[40px] shadow-sm border border-[#F0E6D2] mb-8">
+        {/* 日历模块 */}
+        <div className="bg-white p-6 rounded-[40px] shadow-sm border border-[#F0E6D2] mb-8 animate-fade-in">
           <div className="flex justify-between items-center mb-6 px-1">
             <h3 className="font-black text-sm flex items-center gap-2 text-[#5D3A2F]"><CalendarIcon size={18} className="text-[#FF5C00]" />生活足迹</h3>
             <span className="text-[11px] font-black text-[#B45309]/40">{currentYear}年 {currentMonth + 1}月</span>
@@ -167,7 +177,7 @@ const Finance: React.FC = () => {
                 <button 
                   key={idx} 
                   onClick={() => setSelectedDate(dateStr)} 
-                  className={`aspect-square rounded-xl flex flex-col items-center justify-center transition-all relative ${
+                  className={`aspect-square rounded-xl flex flex-col items-center justify-center transition-all relative select-none touch-manipulation ${
                     isSelected ? 'bg-[#FF5C00] text-white shadow-lg scale-110 z-10' : 'bg-[#FFF9E8]/40 border border-[#F0E6D2]'
                   }`}
                 >
@@ -181,7 +191,7 @@ const Finance: React.FC = () => {
         </div>
 
         {/* 记录明细 */}
-        <div className="space-y-10 pb-10">
+        <div className="space-y-10">
           <h3 className="text-[14px] font-black text-[#5D3A2F] flex items-center gap-2 px-1">
             {selectedDate.split('-')[2]}日 明细
             <span className="text-[10px] font-bold text-[#B45309]/30 bg-[#FFF9E8] px-2 py-0.5 rounded-full border border-[#F0E6D2]">总花销 ¥{dayTotalSpend}</span>
@@ -192,14 +202,17 @@ const Finance: React.FC = () => {
             {cookingRecords.length > 0 ? (
               <div className="grid gap-2">
                 {cookingRecords.map(cr => (
-                  <div key={cr.id} className="bg-green-50/50 border border-green-100 p-4 rounded-2xl flex items-center gap-3">
+                  <div key={cr.id} className="bg-green-50/50 border border-green-100 p-4 rounded-2xl flex items-center gap-3 animate-fade-in">
                     <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center text-white"><ChefHat size={20} /></div>
                     <span className="font-black text-[#5D3A2F] text-sm">{cr.description}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-10 flex flex-col items-center opacity-30 border-2 border-dashed border-[#F0E6D2] rounded-[30px]"><LuluSleep size={100} /><p className="text-xs font-black mt-2">暂无烹饪</p></div>
+              <div className="py-10 flex flex-col items-center opacity-30 border-2 border-dashed border-[#F0E6D2] rounded-[30px] animate-fade-in">
+                <LuluSleep size={100} />
+                <p className="text-xs font-black mt-2">暂无烹饪</p>
+              </div>
             )}
           </section>
 
@@ -208,78 +221,127 @@ const Finance: React.FC = () => {
             {purchaseRecords.length > 0 ? (
               <div className="grid gap-2">
                 {purchaseRecords.map(pr => (
-                  <div key={pr.id} className="bg-white border border-[#F0E6D2] p-4 rounded-2xl flex justify-between items-center shadow-sm">
+                  <div key={pr.id} className="bg-white border border-[#F0E6D2] p-4 rounded-2xl flex justify-between items-center shadow-sm animate-fade-in">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-[#FF5C00]">{getLogIcon(pr.icon || 'Coins', 18)}</div>
                       <span className="text-[13px] font-black text-[#5D3A2F]">{pr.description}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-black text-[#FF5C00]">¥{pr.amount}</span>
-                      <button onClick={() => deleteExpense(pr.id)} className="p-2 text-red-200 hover:text-red-500"><Trash2 size={14} /></button>
+                      <button 
+                        onClick={() => deleteExpense(pr.id)} 
+                        className="p-2 text-red-200 hover:text-red-500 active:scale-90 transition-transform"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-10 flex flex-col items-center opacity-30 border-2 border-dashed border-[#F0E6D2] rounded-[30px]"><LuluSleep size={100} /><p className="text-xs font-black mt-2">暂无开销</p></div>
+              <div className="py-10 flex flex-col items-center opacity-30 border-2 border-dashed border-[#F0E6D2] rounded-[30px] animate-fade-in">
+                <LuluSleep size={100} />
+                <p className="text-xs font-black mt-2">暂无开销</p>
+              </div>
             )}
           </section>
         </div>
       </div>
 
-      {/* 弹窗部分 */}
+      {/* 弹窗：预算设置 */}
       {isBudgetModalOpen && (
-        <div className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-md flex items-center justify-center animate-fade-in px-8">
+        <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-md flex items-center justify-center animate-fade-in px-8">
           <div className="bg-[#FEFFF9] w-full max-w-[280px] rounded-[45px] p-8 shadow-2xl animate-scale-up border border-white/50">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-black text-[#5D3A2F]">周期预算</h2>
-              <button onClick={() => setIsBudgetModalOpen(false)} className="p-2 text-[#FF5C00]"><X size={16} strokeWidth={3} /></button>
+              <button onClick={() => setIsBudgetModalOpen(false)} className="p-2 text-[#FF5C00] active:scale-90"><X size={16} strokeWidth={3} /></button>
             </div>
             <div className="space-y-6">
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FF5C00] font-black text-xl">¥</span>
-                <input type="number" value={tempBudget} onChange={e => setTempBudget(e.target.value)} className="w-full bg-[#FFF9E8]/30 border-2 border-[#F0E6D2] pl-10 pr-5 py-4 rounded-2xl font-black text-[#FF5C00] text-2xl outline-none" placeholder="2000" />
+                <input 
+                  type="number" 
+                  value={tempBudget} 
+                  onChange={e => setTempBudget(e.target.value)} 
+                  className="w-full bg-[#FFF9E8]/30 border-2 border-[#F0E6D2] pl-10 pr-5 py-4 rounded-2xl font-black text-[#FF5C00] text-2xl outline-none" 
+                  placeholder="2000" 
+                />
               </div>
-              <button onClick={handleSaveBudget} className="w-full h-14 bg-[#FF5C00] text-white rounded-[22px] font-black shadow-xl active:scale-95 transition-all">保存设置</button>
+              <button 
+                onClick={handleSaveBudget} 
+                className="w-full h-14 bg-[#FF5C00] text-white rounded-[22px] font-black shadow-xl active:scale-[0.98] transition-all border-b-4 border-[#E65100]"
+              >
+                保存设置
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* 弹窗：随手记 */}
       {isLogModalOpen && (
-        <div className="fixed inset-0 z-[2100] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
+        <div className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
           <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[80%] rounded-t-[50px] p-8 animate-slide-up flex flex-col shadow-2xl border-t border-white/40 overflow-hidden">
             <div className="w-12 h-1.5 bg-[#5D3A2F]/10 rounded-full mx-auto mb-6 shrink-0"></div>
             <header className="flex justify-between items-center mb-8 shrink-0 px-2">
               <h2 className="text-xl font-black text-[#5D3A2F]">随手记一笔</h2>
-              <button onClick={() => setIsLogModalOpen(false)} className="p-2 text-[#FF5C00]"><X size={20} strokeWidth={3} /></button>
+              <button onClick={() => setIsLogModalOpen(false)} className="p-2 text-[#FF5C00] active:scale-90"><X size={20} strokeWidth={3} /></button>
             </header>
-            <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll space-y-6 pb-32">
+            <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll space-y-6 pb-32 touch-pan-y">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-[#B45309]/30 uppercase tracking-widest px-2 block">消费内容</label>
-                <input value={logDesc} onChange={e => setLogDesc(e.target.value)} placeholder="买了什么？" className="w-full bg-white border-2 border-[#F0E6D2] px-5 py-3.5 rounded-[22px] font-black text-base outline-none shadow-sm" />
+                <input 
+                  value={logDesc} 
+                  onChange={e => setLogDesc(e.target.value)} 
+                  placeholder="买了什么？" 
+                  className="w-full bg-white border-2 border-[#F0E6D2] px-5 py-3.5 rounded-[22px] font-black text-base outline-none shadow-sm" 
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-[#B45309]/30 px-2 block uppercase tracking-widest">金额 (¥)</label>
-                  <input type="number" value={logAmount} onChange={e => setLogAmount(e.target.value)} placeholder="0.00" className="w-full bg-white border-2 border-[#F0E6D2] px-5 py-3 rounded-[18px] font-black text-[#FF5C00] outline-none shadow-sm" />
+                  <input 
+                    type="number" 
+                    value={logAmount} 
+                    onChange={e => setLogAmount(e.target.value)} 
+                    placeholder="0.00" 
+                    className="w-full bg-white border-2 border-[#F0E6D2] px-5 py-3 rounded-[18px] font-black text-[#FF5C00] outline-none shadow-sm" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-[#B45309]/30 px-2 block uppercase tracking-widest">日期</label>
-                  <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} className="w-full bg-white border-2 border-[#F0E6D2] px-4 py-3 rounded-[18px] font-black text-[#5D3A2F] text-xs outline-none" />
+                  <input 
+                    type="date" 
+                    value={logDate} 
+                    onChange={e => setLogDate(e.target.value)} 
+                    className="w-full bg-white border-2 border-[#F0E6D2] px-4 py-3 rounded-[18px] font-black text-[#5D3A2F] text-xs outline-none" 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-[#B45309]/30 px-2 block uppercase tracking-widest">挑选图标</label>
                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
                   {LOG_ICON_OPTIONS.map(icon => (
-                    <button key={icon} onClick={() => setLogIcon(icon)} className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border-2 ${logIcon === icon ? 'bg-[#FF5C00] text-white border-[#FF5C00]' : 'bg-white border-[#F0E6D2] text-[#B45309]/20'}`}>{getLogIcon(icon, 20)}</button>
+                    <button 
+                      key={icon} 
+                      onClick={() => setLogIcon(icon)} 
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border-2 transition-all ${
+                        logIcon === icon ? 'bg-[#FF5C00] text-white border-[#FF5C00] shadow-md' : 'bg-white border-[#F0E6D2] text-[#B45309]/20'
+                      }`}
+                    >
+                      {getLogIcon(icon, 20)}
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FEFFF9] to-transparent shrink-0">
-              <button onClick={handleQuickLog} className="w-full h-14 bg-[#FF5C00] text-white rounded-[24px] font-black shadow-xl active:scale-95 transition-all">记入账本萝</button>
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FEFFF9] via-[#FEFFF9] to-transparent shrink-0">
+              <button 
+                onClick={handleQuickLog} 
+                className="w-full h-14 bg-[#FF5C00] text-white rounded-[24px] font-black shadow-xl active:scale-[0.98] transition-all border-b-4 border-[#E65100]"
+              >
+                记入账本萝
+              </button>
             </div>
           </div>
         </div>
@@ -290,6 +352,8 @@ const Finance: React.FC = () => {
         .animate-slide-up { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes scale-up { from { transform: scale(0.9) opacity: 0; } to { transform: scale(1) opacity: 1; } }
         .animate-scale-up { animation: scale-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .touch-manipulation { touch-action: manipulation; }
       `}</style>
     </div>
   );
