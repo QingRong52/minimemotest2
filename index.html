@@ -3,50 +3,63 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>厨神老爸 - 智能厨房</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --app-height: 100%;
+      }
       html, body {
         margin: 0;
         padding: 0;
         background-color: #F3E5D8;
         height: 100%;
+        width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
         overflow: hidden;
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
       }
 
       #root {
-        width: 375px;
-        height: 812px;
+        width: 100%;
+        max-width: 430px; /* 适配大屏手机如 iPhone Pro Max */
+        height: 100%;
+        max-height: 932px;
         background-color: #FEFFF9;
         position: relative;
         overflow: hidden;
         box-shadow: 0 50px 100px -20px rgba(180,83,9,0.15);
-        border: 12px solid #5D3A2F;
-        border-radius: 60px;
         font-family: 'Outfit', sans-serif;
         color: #B45309;
       }
 
-      /* 已移除 #root::before (刘海) 和 .status-bar (状态栏) */
+      @media (min-width: 500px) {
+        #root {
+          height: 90vh;
+          border: 10px solid #5D3A2F;
+          border-radius: 50px;
+        }
+      }
 
       .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       
+      /* 优化平滑滚动 */
+      .smooth-scroll {
+        -webkit-overflow-scrolling: touch;
+      }
+
       @keyframes fade-in {
-        from { opacity: 0; transform: translateY(12px); }
+        from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
       }
       .animate-fade-in {
-        animation: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
-
-      @media (max-width: 500px) {
-        body { background-color: #FEFFF9; }
-        #root { width: 100vw; height: 100vh; border: none; border-radius: 0; box-shadow: none; }
+        animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
     </style>
   <script type="importmap">
@@ -63,9 +76,16 @@
 </script>
 </head>
   <body>
-    <div id="root">
-      <!-- 内部不再需要状态栏 -->
-    </div>
+    <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    <script>
+      // 解决移动端浏览器 100vh 包含工具栏的问题
+      const setAppHeight = () => {
+        const doc = document.documentElement;
+        doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+      };
+      window.addEventListener('resize', setAppHeight);
+      setAppHeight();
+    </script>
   </body>
 </html>

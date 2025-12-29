@@ -63,28 +63,31 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#FEFFF9] relative">
-      <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-[72px] pb-32">
-        <header className="flex justify-between items-end mb-8 animate-fade-in">
-          <div className="space-y-1">
-            <h1 className="text-[28px] font-black text-[#5D3A2F] leading-none tracking-tighter">厨神好</h1>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C00]/30"></div>
-              <p className="text-[#B45309]/50 text-[12px] font-medium tracking-tight">陛下请点单</p>
-            </div>
+    <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
+      {/* 固定头部 */}
+      <header className="flex justify-between items-end px-6 pt-12 pb-6 shrink-0 bg-[#FEFFF9]/80 backdrop-blur-md z-10">
+        <div className="space-y-1">
+          <h1 className="text-[28px] font-black text-[#5D3A2F] leading-none tracking-tighter">厨神好</h1>
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C00]/30"></div>
+            <p className="text-[#B45309]/50 text-[12px] font-medium tracking-tight">陛下请点单</p>
           </div>
-          <button 
-            onClick={() => navigate('/add-recipe')}
-            className="w-[48px] h-[48px] bg-[#FF5C00] rounded-[18px] flex items-center justify-center text-white shadow-lg active:scale-90 transition-all"
-          >
-            <Plus size={24} strokeWidth={2.5} />
-          </button>
-        </header>
+        </div>
+        <button 
+          onClick={() => navigate('/add-recipe')}
+          className="w-[48px] h-[48px] bg-[#FF5C00] rounded-[18px] flex items-center justify-center text-white shadow-lg active:scale-90 transition-all"
+        >
+          <Plus size={24} strokeWidth={2.5} />
+        </button>
+      </header>
 
-        <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 mb-10 py-1">
+      {/* 可滚动主体区域 */}
+      <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll px-6 pb-40">
+        {/* 横向分类栏 */}
+        <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 mb-10 py-1 shrink-0">
           <button 
             onClick={() => setIsCategoryManagerOpen(true)}
-            className="w-[50px] h-[50px] bg-white border border-[#F0E6D2] rounded-[16px] flex items-center justify-center text-[#B45309]/40 shrink-0 active:scale-95"
+            className="w-[50px] h-[50px] bg-white border border-[#F0E6D2] rounded-[16px] flex items-center justify-center text-[#B45309]/40 shrink-0 active:scale-95 shadow-sm"
           >
             <Settings2 size={20} strokeWidth={2} />
           </button>
@@ -120,11 +123,11 @@ const Home: React.FC = () => {
             </span>
           </div>
           {filteredRecipes.length > 0 ? (
-            <div className="grid gap-3.5 animate-fade-in">
+            <div className="grid gap-3.5 animate-fade-in pb-10">
               {filteredRecipes.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} />)}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 opacity-80 animate-fade-in">
+            <div className="flex flex-col items-center justify-center py-20 opacity-80 animate-fade-in">
               <LuluChef size={140} className="mb-4" />
               <p className="text-[13px] font-black text-[#B45309]/40">“萝萝还在钻研这门流派的奥义...”</p>
             </div>
@@ -134,13 +137,11 @@ const Home: React.FC = () => {
 
       <FloatingPot />
 
-      {/* 分类中心弹窗 - 重构为带有半透明背景的抽屉模式 */}
+      {/* 分类中心弹窗 - 使用 fixed 确保不被父容器遮挡 */}
       {isCategoryManagerOpen && (
-        <div className="absolute inset-0 z-[400] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
-          <div className="bg-[#FEFFF9] w-full h-[85%] rounded-t-[50px] p-8 animate-slide-up flex flex-col shadow-[0_-20px_80px_rgba(0,0,0,0.15)] border-t border-white/40">
-            
-            {/* 顶栏标准化布局 */}
-            <div className="flex justify-between items-center mb-8">
+        <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
+          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[85%] rounded-t-[50px] p-8 animate-slide-up flex flex-col shadow-2xl border-t border-white/40">
+            <div className="flex justify-between items-center mb-8 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-[#F0E6D2]">
                   <LayoutGrid size={24} className="text-[#FF5C00]" strokeWidth={2.5} />
@@ -158,8 +159,8 @@ const Home: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto no-scrollbar space-y-8 pb-10 px-1">
-              {/* 编辑/添加卡片 - 采用浮雕质感 */}
+            <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll space-y-8 pb-10 px-1">
+              {/* 编辑表单 */}
               <div id="edit-form-anchor" className="bg-white border-2 border-[#F0E6D2] rounded-[35px] p-6 shadow-sm transition-all focus-within:border-[#FF5C00]/30">
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C00]"></div>
@@ -189,7 +190,7 @@ const Home: React.FC = () => {
                     type="text" 
                     value={newCatLabel} 
                     onChange={(e) => setNewCatLabel(e.target.value)}
-                    placeholder="给新分类起个霸气的名字..."
+                    placeholder="给新分类起个名字..."
                     className="w-full bg-[#FFF9E8]/30 border border-[#F0E6D2] px-6 py-5 rounded-[22px] font-black text-[#5D3A2F] outline-none shadow-inner text-base"
                   />
                   <button 
@@ -207,7 +208,7 @@ const Home: React.FC = () => {
                 </div>
               </div>
 
-              {/* 已定义列表 - 间距优化 */}
+              {/* 分类列表 */}
               <div className="space-y-3.5">
                 <label className="text-[10px] font-black text-[#B45309]/30 uppercase tracking-[0.25em] px-2 block mb-2">已定义的派系</label>
                 {categories.map((cat, idx) => {
@@ -266,7 +267,6 @@ const Home: React.FC = () => {
       <style>{`
         @keyframes slide-up { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
   );

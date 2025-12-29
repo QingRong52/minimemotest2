@@ -50,31 +50,25 @@ const FloatingPot: React.FC = () => {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className={`absolute bottom-28 right-6 w-[64px] h-[64px] bg-[#FF5C00] rounded-full flex items-center justify-center shadow-[0_12px_24px_rgba(255,92,0,0.4)] transition-all z-[120] border-2 border-white/10 ${
-          jump ? 'animate-pot-jump' : 'hover:scale-110 active:scale-95'
+        className={`absolute bottom-[96px] right-6 w-[56px] h-[56px] bg-[#FF5C00] rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(255,92,0,0.4)] transition-all z-[120] border-2 border-white/20 ${
+          jump ? 'animate-pot-jump' : 'active:scale-95'
         }`}
       >
         <div className="relative">
-          <CookingPot size={32} color="white" strokeWidth={2.5} />
+          <CookingPot size={28} color="white" strokeWidth={2.5} />
           {queueItems.length > 0 && (
-            <div className={`absolute -top-1.5 -right-1.5 bg-white text-[#FF5C00] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center font-black text-[10px] border-2 border-[#FF5C00] shadow-sm transition-transform ${
-              jump ? 'scale-125' : 'scale-100'
-            }`}>
+            <div className={`absolute -top-1.5 -right-1.5 bg-white text-[#FF5C00] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-black text-[9px] border border-[#FF5C00] shadow-sm`}>
               {queueItems.length}
             </div>
           )}
         </div>
-        {jump && <div className="absolute inset-0 bg-white/30 rounded-full animate-ping"></div>}
       </button>
 
       {isOpen && (
         <div className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/50 backdrop-blur-2xl animate-fade-in">
           <div className="bg-[#FEFFF9] w-full h-[75%] rounded-t-[50px] p-8 animate-slide-up flex flex-col shadow-[0_-20px_80px_rgba(0,0,0,0.2)] border-t border-white/40">
-            
-            {/* 顶部指示条 */}
             <div className="w-14 h-1.5 bg-[#5D3A2F]/10 rounded-full mx-auto mb-8 shrink-0"></div>
 
-            {/* 顶栏标准化 */}
             <div className="flex justify-between items-center mb-10 px-2">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-white rounded-[22px] flex items-center justify-center shadow-md border border-[#F0E6D2]">
@@ -106,9 +100,6 @@ const FloatingPot: React.FC = () => {
                     >
                       <div className="relative shrink-0">
                         <img src={item.image} className="w-[72px] h-[72px] rounded-[24px] object-cover shadow-sm border border-[#F0E6D2]" alt="" />
-                        <div className="absolute -bottom-1 -right-1 bg-[#FF5C00] p-1.5 rounded-xl text-white border-2 border-white shadow-sm">
-                          <ChefHat size={12} strokeWidth={3} />
-                        </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <span className="font-black text-[#5D3A2F] text-[18px] block mb-1 truncate">{item.name}</span>
@@ -131,12 +122,7 @@ const FloatingPot: React.FC = () => {
                 ))
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-90 animate-fade-in">
-                  <div className="relative mb-6">
-                    <LuluChef size={180} className="grayscale opacity-40" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/40 backdrop-blur-sm p-4 rounded-full border border-white/20">
-                      <CookingPot size={40} className="text-[#FF5C00]/20" />
-                    </div>
-                  </div>
+                  <LuluChef size={180} className="grayscale opacity-40 mb-6" />
                   <p className="text-[15px] font-black text-[#B45309]/30 tracking-tight">“灶台空荡，萝萝在等待旨意萝！”</p>
                 </div>
               )}
@@ -159,13 +145,10 @@ const FloatingPot: React.FC = () => {
 
       <style>{`
         @keyframes pot-jump {
-          0%, 100% { transform: translateY(0) scale(1); }
-          30% { transform: translateY(-15px) scale(1.1); }
-          60% { transform: translateY(0) scale(0.95); }
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
         }
-        .animate-pot-jump {
-          animation: pot-jump 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .animate-pot-jump { animation: pot-jump 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes slide-up { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .h-18 { height: 72px; }
