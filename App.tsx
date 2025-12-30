@@ -9,6 +9,9 @@ import RecipeDetail from './pages/RecipeDetail';
 import AddRecipe from './pages/AddRecipe';
 import AIBookkeeping from './pages/AIBookkeeping';
 import ImportXHS from './pages/ImportXHS';
+import ShoppingList from './pages/ShoppingList';
+import AddFeedback from './pages/AddFeedback';
+import Journal from './pages/Journal';
 import { KitchenProvider } from './KitchenContext';
 
 const App: React.FC = () => {
@@ -24,6 +27,9 @@ const App: React.FC = () => {
             <Route path="/add-recipe" element={<AddRecipe />} />
             <Route path="/ai-bookkeeping" element={<AIBookkeeping />} />
             <Route path="/import-xhs" element={<ImportXHS />} />
+            <Route path="/shopping-list" element={<ShoppingList />} />
+            <Route path="/recipe/:id/add-feedback" element={<AddFeedback />} />
+            <Route path="/journal" element={<Journal />} />
           </Routes>
         </Layout>
       </Router>

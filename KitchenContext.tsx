@@ -19,6 +19,13 @@ export interface ChatMessage {
   isConfirmed?: boolean;
 }
 
+export interface CategoryBudgets {
+  eat: number;
+  life: number;
+  rent: number;
+  play: number;
+}
+
 const DEFAULT_CATEGORIES: Category[] = [
   { id: '全部', label: '全部', icon: 'Utensils' },
   { id: '厨神必做', label: '厨神必做', icon: 'ChefHat' },
@@ -37,6 +44,7 @@ interface KitchenContextType {
   mealPlans: MealPlan[];
   feedbacks: RecipeFeedback[];
   monthlyBudget: number;
+  categoryBudgets: CategoryBudgets;
   isAiProcessing: boolean;
   isRecipeImporting: boolean;
   importedRecipeResult: any | null;
@@ -57,6 +65,7 @@ interface KitchenContextType {
   updateExpense: (id: string, record: Partial<ExpenseRecord>) => void;
   addExpenses: (records: Omit<ExpenseRecord, 'id'>[]) => void;
   setMonthlyBudget: (amount: number) => void;
+  setCategoryBudgets: (budgets: CategoryBudgets) => void;
   deleteExpense: (id: string) => void;
   updateChatHistory: (messages: ChatMessage[]) => void;
   clearChat: () => void;
@@ -120,6 +129,11 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return saved ? Number(saved) : 2000;
   });
 
+  const [categoryBudgets, setCategoryBudgetsState] = useState<CategoryBudgets>(() => {
+    const saved = localStorage.getItem('kitchen_category_budgets');
+    return saved ? JSON.parse(saved) : { eat: 1000, life: 500, rent: 0, play: 500 };
+  });
+
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [isRecipeImporting, setIsRecipeImporting] = useState(false);
   const [importedRecipeResult, setImportedRecipeResult] = useState<any | null>(null);
@@ -133,6 +147,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => { localStorage.setItem('kitchen_meal_plans', JSON.stringify(mealPlans)); }, [mealPlans]);
   useEffect(() => { localStorage.setItem('kitchen_feedbacks', JSON.stringify(feedbacks)); }, [feedbacks]);
   useEffect(() => { localStorage.setItem('kitchen_budget', monthlyBudget.toString()); }, [monthlyBudget]);
+  useEffect(() => { localStorage.setItem('kitchen_category_budgets', JSON.stringify(categoryBudgets)); }, [categoryBudgets]);
 
   const addRecipe = (newRecipe: Recipe) => setRecipes(prev => [newRecipe, ...prev]);
   const updateRecipe = (updated: Recipe) => setRecipes(prev => prev.map(r => r.id === updated.id ? updated : r));
@@ -187,6 +202,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const deleteExpense = (id: string) => setExpenseRecords(prev => prev.filter(e => e.id !== id));
   const setMonthlyBudget = (amount: number) => setBudgetState(amount);
+  const setCategoryBudgets = (budgets: CategoryBudgets) => setCategoryBudgetsState(budgets);
   
   const updateChatHistory = (messages: ChatMessage[]) => setChatHistory(messages);
   const clearChat = () => setChatHistory([{
@@ -350,11 +366,11 @@ JSON 结构：
 
   return (
     <KitchenContext.Provider value={{ 
-      recipes, categories, cookingQueue, shoppingList, expenseRecords, chatHistory, mealPlans, feedbacks, monthlyBudget, 
+      recipes, categories, cookingQueue, shoppingList, expenseRecords, chatHistory, mealPlans, feedbacks, monthlyBudget, categoryBudgets,
       isAiProcessing, isRecipeImporting, importedRecipeResult,
       addRecipe, updateRecipe, deleteRecipe, addCategory, updateCategory, deleteCategory, reorderCategories,
       addToQueue, removeFromQueue, clearQueue, addToShoppingList, toggleShoppingItem, clearShoppingList,
-      addExpense, updateExpense, addExpenses, deleteExpense, setMonthlyBudget, updateChatHistory, clearChat,
+      addExpense, updateExpense, addExpenses, deleteExpense, setMonthlyBudget, setCategoryBudgets, updateChatHistory, clearChat,
       addMealPlan, removeMealPlan, addFeedback, processBookkeeping, processRecipeImport, clearImportResult
     }}>
       {children}

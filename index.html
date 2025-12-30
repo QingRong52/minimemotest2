@@ -14,7 +14,7 @@
       html, body {
         margin: 0;
         padding: 0;
-        background-color: #F3E5D8;
+        background-color: #FEFFF9;
         height: 100%;
         width: 100%;
         display: flex;
@@ -27,39 +27,52 @@
 
       #root {
         width: 100%;
-        max-width: 430px; /* 适配大屏手机如 iPhone Pro Max */
+        max-width: 430px; 
         height: 100%;
-        max-height: 932px;
         background-color: #FEFFF9;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 50px 100px -20px rgba(180,83,9,0.15);
         font-family: 'Outfit', sans-serif;
         color: #B45309;
+        display: flex;
+        flex-direction: column;
       }
 
       @media (min-width: 500px) {
         #root {
           height: 90vh;
-          border: 10px solid #5D3A2F;
+          max-height: 932px;
+          border: 8px solid #5D3A2F;
           border-radius: 50px;
+          box-shadow: 0 40px 100px -20px rgba(180,83,9,0.2);
         }
       }
+
+      /* 适配 iOS 安全区域 */
+      .safe-pb { padding-bottom: env(safe-area-inset-bottom); }
+      .safe-pt { padding-top: env(safe-area-inset-top); }
 
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       
-      /* 优化平滑滚动 */
       .smooth-scroll {
         -webkit-overflow-scrolling: touch;
       }
 
       @keyframes fade-in {
-        from { opacity: 0; transform: translateY(10px); }
+        from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
       }
       .animate-fade-in {
         animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      
+      @keyframes slide-up {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+      .animate-slide-up {
+        animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
     </style>
   <script type="importmap">
@@ -80,10 +93,8 @@
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
-      // 解决移动端浏览器 100vh 包含工具栏的问题
       const setAppHeight = () => {
-        const doc = document.documentElement;
-        doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+        document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
       };
       window.addEventListener('resize', setAppHeight);
       setAppHeight();
