@@ -47,8 +47,6 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
       <div className={`bg-[#FFF9E8] rounded-[24px] p-3.5 flex gap-4 items-center shadow-[0_4px_20px_rgba(180,83,9,0.02)] transition-all border border-[#F0E6D2] relative group ${
         isAnimating ? 'scale-[0.97] bg-[#FF9A2E]/5 ring-2 ring-[#FF9A2E]/20' : 'active:scale-[0.99] hover:shadow-[0_10px_30px_rgba(180,83,9,0.05)]'
       }`}>
-        
-        {/* 幽灵式删除按钮 */}
         <button 
           type="button"
           onClick={handleDeleteClick}
@@ -57,7 +55,6 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
           <X size={14} strokeWidth={3} />
         </button>
 
-        {/* 左侧图片 */}
         <Link 
           to={`/recipe/${recipe.id}`} 
           className="shrink-0 w-[100px] h-[100px] rounded-[20px] overflow-hidden shadow-sm bg-white border border-[#F0E6D2]/40"
@@ -69,7 +66,6 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
           />
         </Link>
         
-        {/* 右侧内容 */}
         <div className="flex-1 flex flex-col justify-between py-1 h-[100px] min-w-0">
           <div>
             <h3 className="text-[#5D3A2F] text-[17px] font-black leading-tight truncate pr-4 tracking-tighter">
@@ -80,14 +76,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
             </p>
           </div>
 
-          <div className="flex justify-between items-center pr-1">
-            <div className="flex items-baseline gap-0.5">
-              <span className="text-[#FF5C00] text-[10px] font-black">¥</span>
-              <span className="text-[#FF5C00] text-[18px] font-black tracking-tighter">
-                {recipe.estimatedCost}
-              </span>
-            </div>
-            
+          <div className="flex justify-end items-center pr-1">
             <button 
               type="button"
               onClick={handleAddToQueue}
@@ -101,7 +90,6 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
         </div>
       </div>
 
-      {/* 确认弹窗：极致沉浸黑色全屏遮罩 */}
       {showConfirm && (
         <div 
           className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[15px] animate-fade-in px-10"
@@ -112,63 +100,20 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative mb-6 mt-2">
-              <div className="animate-tremble">
-                <LuluScared size={90} />
-              </div>
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#FF5E57] rounded-full flex items-center justify-center text-white shadow-lg border-2 border-white">
-                <Info size={14} strokeWidth={4} />
-              </div>
+              <div className="animate-tremble"><LuluScared size={90} /></div>
+              <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#FF5E57] rounded-full flex items-center justify-center text-white shadow-lg border-2 border-white"><Info size={14} strokeWidth={4} /></div>
             </div>
-            
             <div className="text-center mb-8">
               <h3 className="text-[21px] font-black text-[#5D3A2F] mb-2 tracking-tight">要把秘籍丢掉吗？</h3>
-              <p className="text-[13px] font-bold text-[#B45309]/50 leading-relaxed px-2">
-                “这卷秘籍里还有<br/>萝萝没学会的奥义萝...”
-              </p>
+              <p className="text-[13px] font-bold text-[#B45309]/50 leading-relaxed px-2">“这卷秘籍里还有<br/>萝萝没学会的奥义萝...”</p>
             </div>
-            
             <div className="flex flex-col gap-3 w-full">
-              <button 
-                onClick={cancelDelete}
-                className="w-full py-4.5 bg-[#FF5C00] text-white rounded-[24px] font-black text-[16px] shadow-[0_12px_30px_rgba(255,92,0,0.4)] active:scale-[0.96] transition-all flex items-center justify-center gap-2 border-b-4 border-[#E65100]"
-              >
-                <Heart size={18} fill="white" />
-                那再留一会萝
-              </button>
-
-              <button 
-                onClick={confirmDelete}
-                className="w-full py-4 text-[#B45309]/30 rounded-[24px] font-bold text-[14px] hover:text-red-500 transition-all active:scale-[0.96] flex items-center justify-center gap-2"
-              >
-                <Trash2 size={16} />
-                残忍丢弃
-              </button>
+              <button onClick={cancelDelete} className="w-full py-4.5 bg-[#FF5C00] text-white rounded-[24px] font-black text-[16px] shadow-[0_12px_30px_rgba(255,92,0,0.4)] active:scale-[0.96] transition-all flex items-center justify-center gap-2 border-b-4 border-[#E65100]"><Heart size={18} fill="white" />那再留一会萝</button>
+              <button onClick={confirmDelete} className="w-full py-4 text-[#B45309]/30 rounded-[24px] font-bold text-[14px] hover:text-red-500 transition-all active:scale-[0.96] flex items-center justify-center gap-2"><Trash2 size={16} />残忍丢弃</button>
             </div>
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes bounce-short {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.15); }
-        }
-        .animate-bounce-short { animation: bounce-short 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes tremble {
-          0%, 100% { transform: rotate(0); }
-          25% { transform: rotate(-3deg); }
-          75% { transform: rotate(3deg); }
-        }
-        .animate-tremble { animation: tremble 0.2s infinite linear; }
-        @keyframes modal-pop {
-          from { transform: scale(0.9) translateY(40px); opacity: 0; }
-          to { transform: scale(1) translateY(0); opacity: 1; }
-        }
-        .animate-modal-pop { animation: modal-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
-        .py-4.5 { padding-top: 1.125rem; padding-bottom: 1.125rem; }
-      `}</style>
     </>
   );
 };

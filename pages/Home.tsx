@@ -6,7 +6,8 @@ import FloatingPot from '../components/FloatingPot';
 import { LuluChef } from '../components/LuluIcons';
 import { 
   Plus, Settings2, X, ChefHat, 
-  ChevronUp, ChevronDown, Trash2, Edit2, Check, LayoutGrid
+  ChevronUp, ChevronDown, Trash2, Edit2, Check, LayoutGrid,
+  Share2
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useKitchen, Category } from '../KitchenContext';
@@ -64,7 +65,6 @@ const Home: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
-      {/* 固定头部 */}
       <header className="flex justify-between items-end px-6 pt-12 pb-6 shrink-0 bg-[#FEFFF9]/80 backdrop-blur-md z-10">
         <div className="space-y-1">
           <h1 className="text-[28px] font-black text-[#5D3A2F] leading-none tracking-tighter">厨神好</h1>
@@ -73,17 +73,23 @@ const Home: React.FC = () => {
             <p className="text-[#B45309]/50 text-[12px] font-medium tracking-tight">陛下请点单</p>
           </div>
         </div>
-        <button 
-          onClick={() => navigate('/add-recipe')}
-          className="w-[48px] h-[48px] bg-[#FF5C00] rounded-[18px] flex items-center justify-center text-white shadow-lg active:scale-90 transition-all"
-        >
-          <Plus size={24} strokeWidth={2.5} />
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => navigate('/import-xhs')}
+            className="w-[48px] h-[48px] bg-[#FFF9E8] border border-[#F0E6D2] rounded-[18px] flex items-center justify-center text-[#FF5C00] shadow-sm active:scale-90 transition-all group"
+          >
+            <Share2 size={20} className="group-hover:rotate-12 transition-transform" />
+          </button>
+          <button 
+            onClick={() => navigate('/add-recipe')}
+            className="w-[48px] h-[48px] bg-[#FF5C00] rounded-[18px] flex items-center justify-center text-white shadow-lg active:scale-90 transition-all"
+          >
+            <Plus size={24} strokeWidth={2.5} />
+          </button>
+        </div>
       </header>
 
-      {/* 可滚动主体区域 */}
       <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll px-6 pb-40">
-        {/* 横向分类栏 */}
         <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 mb-10 py-1 shrink-0">
           <button 
             onClick={() => setIsCategoryManagerOpen(true)}
@@ -137,7 +143,6 @@ const Home: React.FC = () => {
 
       <FloatingPot />
 
-      {/* 分类中心弹窗 - 使用 fixed 确保不被父容器遮挡 */}
       {isCategoryManagerOpen && (
         <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
           <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[85%] rounded-t-[50px] p-8 animate-slide-up flex flex-col shadow-2xl border-t border-white/40">
@@ -160,7 +165,6 @@ const Home: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll space-y-8 pb-10 px-1">
-              {/* 编辑表单 */}
               <div id="edit-form-anchor" className="bg-white border-2 border-[#F0E6D2] rounded-[35px] p-6 shadow-sm transition-all focus-within:border-[#FF5C00]/30">
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C00]"></div>
@@ -208,7 +212,6 @@ const Home: React.FC = () => {
                 </div>
               </div>
 
-              {/* 分类列表 */}
               <div className="space-y-3.5">
                 <label className="text-[10px] font-black text-[#B45309]/30 uppercase tracking-[0.25em] px-2 block mb-2">已定义的派系</label>
                 {categories.map((cat, idx) => {

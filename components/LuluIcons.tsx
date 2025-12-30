@@ -106,18 +106,11 @@ const PixelBody: React.FC<{ expression?: 'normal' | 'scared' | 'sleep', children
         <rect x="106" y="125" width="3.5" height="8" fill="#1A1A1A" rx="1" />
       </g>
     )}
-    {expression === 'normal' && (
-      <>
-        <rect x="85" y="133" width="8" height="3" fill="#F797A8" rx="1" />
-        <rect x="107" y="133" width="8" height="3" fill="#F797A8" rx="1" />
-      </>
-    )}
 
     {expression === 'sleep' && (
       <>
         <rect x="90" y="128" width="6" height="2" fill="#1A1A1A" rx="1" />
         <rect x="104" y="128" width="6" height="2" fill="#1A1A1A" rx="1" />
-        <rect x="93" y="136" width="14" height="4" fill="#F797A8" opacity="0.3" rx="2" />
       </>
     )}
 

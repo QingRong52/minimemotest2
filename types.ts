@@ -28,15 +28,13 @@ export interface Recipe {
   id: string;
   name: string;
   image: string;
-  estimatedCost: number;
-  originalPrice?: number;
   category: string;
   description?: string;
   ingredients: {
     ingredientId: string;
     amount: number;
     name: string;
-    price?: number;
+    unit?: string;
   }[];
   steps: RecipeStep[];
 }
@@ -44,10 +42,26 @@ export interface Recipe {
 export interface ExpenseRecord {
   id: string;
   date: string; // ISO string YYYY-MM-DD
-  time?: string; // 新增字段：HH:mm 格式
+  time?: string; 
   amount: number;
   type: 'purchase' | 'cooking';
   description: string;
   category?: string;
   icon?: string; 
+}
+
+export interface MealPlan {
+  id: string;
+  recipeId: string;
+  date: string; // YYYY-MM-DD
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+}
+
+export interface RecipeFeedback {
+  id: string;
+  recipeId: string;
+  date: string;
+  rating: number;
+  content: string;
+  image?: string;
 }

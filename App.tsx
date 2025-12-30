@@ -3,10 +3,12 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
-import Inventory from './pages/Inventory';
+import Calendar from './pages/Calendar';
 import Finance from './pages/Finance';
 import RecipeDetail from './pages/RecipeDetail';
 import AddRecipe from './pages/AddRecipe';
+import AIBookkeeping from './pages/AIBookkeeping';
+import ImportXHS from './pages/ImportXHS';
 import { KitchenProvider } from './KitchenContext';
 
 const App: React.FC = () => {
@@ -16,10 +18,12 @@ const App: React.FC = () => {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="/finance" element={<Finance />} />
             <Route path="/recipe/:id" element={<RecipeDetail />} />
             <Route path="/add-recipe" element={<AddRecipe />} />
+            <Route path="/ai-bookkeeping" element={<AIBookkeeping />} />
+            <Route path="/import-xhs" element={<ImportXHS />} />
           </Routes>
         </Layout>
       </Router>

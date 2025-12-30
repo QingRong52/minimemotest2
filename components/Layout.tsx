@@ -1,25 +1,24 @@
 
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { CookingPot, ScrollText, PieChart } from 'lucide-react';
+import { CookingPot, Calendar, PieChart } from 'lucide-react';
 
 interface LayoutProps { children: React.ReactNode; }
 
-const Layout: React.FC = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   
-  const mainPages = ['/', '/inventory', '/finance'];
+  const mainPages = ['/', '/calendar', '/finance'];
   const showNav = mainPages.includes(location.pathname);
 
   const navItems = [
     { to: '/', icon: <CookingPot size={28} strokeWidth={2.5} />, label: '食谱' },
-    { to: '/inventory', icon: <ScrollText size={26} strokeWidth={2.5} />, label: '仓库' },
+    { to: '/calendar', icon: <Calendar size={26} strokeWidth={2.5} />, label: '日历' },
     { to: '/finance', icon: <PieChart size={26} strokeWidth={2.5} />, label: '账本' },
   ];
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
-      {/* 核心内容区域：必须是 flex-1 且 overflow-hidden，才能让子页面的 flex-1 overflow-y-auto 生效 */}
       <main className="flex-1 flex flex-col min-h-0 relative">
         {children}
       </main>
@@ -51,7 +50,6 @@ const Layout: React.FC = ({ children }) => {
         </nav>
       )}
       
-      {/* 底部指示条装饰 */}
       <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#5D3A2F]/5 rounded-full z-[51]"></div>
     </div>
   );

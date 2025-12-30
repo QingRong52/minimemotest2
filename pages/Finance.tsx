@@ -1,8 +1,9 @@
 
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  TrendingUp, Calendar as CalendarIcon, Coins, ChefHat, 
-  Plus, X, Trash2, Wallet, Utensils, PieChart, Clock, Check, ShoppingBag, Flame, Sparkles, Package, Gift, Ticket, Edit2, Edit3
+  Calendar as CalendarIcon, Coins, ChefHat, 
+  Plus, X, Trash2, Wallet, PieChart, Sparkles, Edit3
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { LuluSleep } from '../components/LuluIcons';
@@ -14,9 +15,11 @@ const LOG_ICON_OPTIONS = [
 ];
 
 const Finance: React.FC = () => {
-  const { expenseRecords, monthlyBudget, setMonthlyBudget, addExpense, deleteExpense } = useKitchen();
+  const navigate = useNavigate();
+  const { expenseRecords, monthlyBudget, setMonthlyBudget, addExpense, updateExpense, deleteExpense, isAiProcessing } = useKitchen();
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<ExpenseRecord | null>(null);
   const [tempBudget, setTempBudget] = useState(monthlyBudget.toString());
   
   const now = new Date();
@@ -68,27 +71,54 @@ const Finance: React.FC = () => {
   }, [currentMonth, currentYear]);
 
   const dayRecords = useMemo(() => expenseRecords.filter(e => e.date === selectedDate), [expenseRecords, selectedDate]);
-  const purchaseRecords = dayRecords.filter(e => e.type === 'purchase');
-  const cookingRecords = dayRecords.filter(e => e.type === 'cooking');
-  const dayTotalSpend = purchaseRecords.reduce((sum, e) => sum + e.amount, 0);
+  const purchaseRecords = useMemo(() => dayRecords.filter(e => e.type === 'purchase'), [dayRecords]);
+  const cookingRecords = useMemo(() => dayRecords.filter(e => e.type === 'cooking'), [dayRecords]);
+  const dayTotalSpend = useMemo(() => purchaseRecords.reduce((sum, e) => sum + e.amount, 0), [purchaseRecords]);
 
   const handleSaveBudget = () => {
     setMonthlyBudget(Number(tempBudget) || 2000);
     setIsBudgetModalOpen(false);
   };
 
+  const handleOpenLog = (record?: ExpenseRecord) => {
+    if (record) {
+      setEditingRecord(record);
+      setLogDesc(record.description);
+      setLogAmount(record.amount.toString());
+      setLogDate(record.date);
+      setLogIcon(record.icon || 'Coins');
+    } else {
+      setEditingRecord(null);
+      setLogDesc('');
+      setLogAmount('');
+      setLogDate(selectedDate);
+      setLogIcon('Coins');
+    }
+    setIsLogModalOpen(true);
+  };
+
   const handleQuickLog = () => {
     if (!logDesc || !logAmount) return;
     const saveNow = new Date();
     const currentTime = `${saveNow.getHours().toString().padStart(2, '0')}:${saveNow.getMinutes().toString().padStart(2, '0')}`;
-    addExpense({ 
-      date: logDate, 
-      time: currentTime, 
-      amount: Number(logAmount), 
-      type: 'purchase', 
-      description: logDesc, 
-      icon: logIcon 
-    });
+    
+    if (editingRecord) {
+      updateExpense(editingRecord.id, {
+        date: logDate,
+        amount: Number(logAmount),
+        description: logDesc,
+        icon: logIcon
+      });
+    } else {
+      addExpense({ 
+        date: logDate, 
+        time: currentTime, 
+        amount: Number(logAmount), 
+        type: 'purchase', 
+        description: logDesc, 
+        icon: logIcon 
+      });
+    }
     setIsLogModalOpen(false);
     setLogDesc('');
     setLogAmount('');
@@ -107,7 +137,6 @@ const Finance: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
-      {/* 头部固定区域 */}
       <header className="flex justify-between items-center px-6 pt-12 pb-6 shrink-0 bg-[#FEFFF9] z-20 border-b border-[#F0E6D2]/20">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 bg-[#FFF9E8] rounded-[18px] flex items-center justify-center text-[#FF5C00] shadow-sm border border-[#F0E6D2]">
@@ -115,25 +144,35 @@ const Finance: React.FC = () => {
           </div>
           <h1 className="text-[24px] font-black text-[#5D3A2F] tracking-tighter">厨神账本</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 relative">
+          {isAiProcessing && (
+             <div className="absolute -top-1 -left-1 flex h-4 w-4 z-[30]">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-orange-500"></span>
+             </div>
+          )}
+          <button 
+            onClick={() => navigate('/ai-bookkeeping')}
+            className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF5C00] to-[#FF9A2E] flex items-center justify-center text-white shadow-lg active:scale-90 transition-all border border-white/20"
+          >
+            <Sparkles size={18} />
+          </button>
           <button 
             onClick={() => { setTempBudget(monthlyBudget.toString()); setIsBudgetModalOpen(true); }} 
-            className="w-10 h-10 rounded-xl bg-[#FFF9E8] flex items-center justify-center text-[#FF5C00] border border-[#F0E6D2] active:scale-90 shadow-sm transition-transform"
+            className="w-10 h-10 rounded-xl bg-[#FFF9E8] flex items-center justify-center text-[#FF5C00] border border-[#F0E6D2] active:scale-90 shadow-sm"
           >
             <Wallet size={20} />
           </button>
           <button 
-            onClick={() => setIsLogModalOpen(true)} 
-            className="w-10 h-10 rounded-xl bg-[#FF5C00] flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform"
+            onClick={() => handleOpenLog()} 
+            className="w-10 h-10 rounded-xl bg-[#FF5C00] flex items-center justify-center text-white shadow-lg active:scale-90"
           >
             <Plus size={20} strokeWidth={3} />
           </button>
         </div>
       </header>
 
-      {/* 滚动记录明细区域 - 核心修复点 */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden smooth-scroll no-scrollbar px-6 pt-6 pb-40 touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
-        {/* 预算仪表盘 */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden smooth-scroll no-scrollbar px-6 pt-6 pb-40">
         <div className="bg-white p-6 rounded-[35px] border border-[#F0E6D2] shadow-sm mb-8 relative animate-fade-in">
           <div className="flex justify-between items-start mb-6">
             <div className="flex flex-col">
@@ -159,7 +198,6 @@ const Finance: React.FC = () => {
           </div>
         </div>
 
-        {/* 日历模块 */}
         <div className="bg-white p-6 rounded-[40px] shadow-sm border border-[#F0E6D2] mb-8 animate-fade-in">
           <div className="flex justify-between items-center mb-6 px-1">
             <h3 className="font-black text-sm flex items-center gap-2 text-[#5D3A2F]"><CalendarIcon size={18} className="text-[#FF5C00]" />生活足迹</h3>
@@ -190,12 +228,13 @@ const Finance: React.FC = () => {
           </div>
         </div>
 
-        {/* 记录明细 */}
         <div className="space-y-10">
-          <h3 className="text-[14px] font-black text-[#5D3A2F] flex items-center gap-2 px-1">
-            {selectedDate.split('-')[2]}日 明细
-            <span className="text-[10px] font-bold text-[#B45309]/30 bg-[#FFF9E8] px-2 py-0.5 rounded-full border border-[#F0E6D2]">总花销 ¥{dayTotalSpend}</span>
-          </h3>
+          <div className="flex justify-between items-center px-1">
+             <h3 className="text-[14px] font-black text-[#5D3A2F] flex items-center gap-2">
+               {selectedDate.split('-')[2]}日 明细
+             </h3>
+             <span className="text-[10px] font-bold text-[#B45309]/30 bg-[#FFF9E8] px-2 py-0.5 rounded-full border border-[#F0E6D2]">今日消金 ¥{dayTotalSpend.toFixed(2)}</span>
+          </div>
 
           <section className="space-y-4">
             <h4 className="text-[10px] font-black text-[#B45309]/40 uppercase tracking-widest px-1">今日烹饪</h4>
@@ -221,19 +260,27 @@ const Finance: React.FC = () => {
             {purchaseRecords.length > 0 ? (
               <div className="grid gap-2">
                 {purchaseRecords.map(pr => (
-                  <div key={pr.id} className="bg-white border border-[#F0E6D2] p-4 rounded-2xl flex justify-between items-center shadow-sm animate-fade-in">
+                  <div key={pr.id} className="bg-white border border-[#F0E6D2] p-4 rounded-2xl flex justify-between items-center shadow-sm animate-fade-in group">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-[#FF5C00]">{getLogIcon(pr.icon || 'Coins', 18)}</div>
                       <span className="text-[13px] font-black text-[#5D3A2F]">{pr.description}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-black text-[#FF5C00]">¥{pr.amount}</span>
-                      <button 
-                        onClick={() => deleteExpense(pr.id)} 
-                        className="p-2 text-red-200 hover:text-red-500 active:scale-90 transition-transform"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <span className="text-sm font-black text-[#FF5C00]">¥{pr.amount.toFixed(2)}</span>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleOpenLog(pr)} 
+                          className="p-2 text-[#B45309]/30 hover:text-[#FF5C00] active:scale-90 transition-transform"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                        <button 
+                          onClick={() => deleteExpense(pr.id)} 
+                          className="p-2 text-red-200 hover:text-red-500 active:scale-90 transition-transform"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -248,12 +295,11 @@ const Finance: React.FC = () => {
         </div>
       </div>
 
-      {/* 弹窗：预算设置 */}
       {isBudgetModalOpen && (
         <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-md flex items-center justify-center animate-fade-in px-8">
-          <div className="bg-[#FEFFF9] w-full max-w-[280px] rounded-[45px] p-8 shadow-2xl animate-scale-up border border-white/50">
+          <div className="bg-[#FEFFF9] w-full max-w-[280px] rounded-[45px] p-8 shadow-2xl animate-scale-up border border-white/50 text-[#5D3A2F]">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-black text-[#5D3A2F]">周期预算</h2>
+              <h2 className="text-lg font-black">周期预算</h2>
               <button onClick={() => setIsBudgetModalOpen(false)} className="p-2 text-[#FF5C00] active:scale-90"><X size={16} strokeWidth={3} /></button>
             </div>
             <div className="space-y-6">
@@ -278,16 +324,15 @@ const Finance: React.FC = () => {
         </div>
       )}
 
-      {/* 弹窗：随手记 */}
       {isLogModalOpen && (
         <div className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
-          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[80%] rounded-t-[50px] p-8 animate-slide-up flex flex-col shadow-2xl border-t border-white/40 overflow-hidden">
+          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[80%] rounded-t-[50px] p-8 animate-slide-up flex flex-col shadow-2xl border-t border-white/40 overflow-hidden text-[#5D3A2F]">
             <div className="w-12 h-1.5 bg-[#5D3A2F]/10 rounded-full mx-auto mb-6 shrink-0"></div>
             <header className="flex justify-between items-center mb-8 shrink-0 px-2">
-              <h2 className="text-xl font-black text-[#5D3A2F]">随手记一笔</h2>
+              <h2 className="text-xl font-black">{editingRecord ? '修改支出' : '随手记一笔'}</h2>
               <button onClick={() => setIsLogModalOpen(false)} className="p-2 text-[#FF5C00] active:scale-90"><X size={20} strokeWidth={3} /></button>
             </header>
-            <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll space-y-6 pb-32 touch-pan-y">
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 pb-32">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-[#B45309]/30 uppercase tracking-widest px-2 block">消费内容</label>
                 <input 
@@ -314,7 +359,7 @@ const Finance: React.FC = () => {
                     type="date" 
                     value={logDate} 
                     onChange={e => setLogDate(e.target.value)} 
-                    className="w-full bg-white border-2 border-[#F0E6D2] px-4 py-3 rounded-[18px] font-black text-[#5D3A2F] text-xs outline-none" 
+                    className="w-full bg-white border-2 border-[#F0E6D2] px-4 py-3 rounded-[18px] font-black text-xs outline-none" 
                   />
                 </div>
               </div>
@@ -335,26 +380,17 @@ const Finance: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FEFFF9] via-[#FEFFF9] to-transparent shrink-0">
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FEFFF9] via-[#FEFFF9] to-transparent">
               <button 
                 onClick={handleQuickLog} 
                 className="w-full h-14 bg-[#FF5C00] text-white rounded-[24px] font-black shadow-xl active:scale-[0.98] transition-all border-b-4 border-[#E65100]"
               >
-                记入账本萝
+                {editingRecord ? '确认修改' : '记入账本萝'}
               </button>
             </div>
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes slide-up { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-slide-up { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes scale-up { from { transform: scale(0.9) opacity: 0; } to { transform: scale(1) opacity: 1; } }
-        .animate-scale-up { animation: scale-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .touch-manipulation { touch-action: manipulation; }
-      `}</style>
     </div>
   );
 };
