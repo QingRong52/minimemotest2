@@ -160,8 +160,8 @@ const Finance: React.FC = () => {
       </header>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-5 pb-32 space-y-6">
-        {/* 总预算卡片 - 紧凑化 */}
-        <div className="bg-white p-5 rounded-[30px] border border-[#F0E6D2] shadow-sm animate-fade-in">
+        {/* 总预算卡片 */}
+        <div className="bg-white p-5 rounded-[22px] border border-[#F0E6D2] shadow-sm animate-fade-in">
           <div className="flex justify-between items-start mb-4">
             <div>
               <p className="text-[#B45309]/50 text-[9px] font-black uppercase tracking-wider mb-0.5">本期总预算 (15日结)</p>
@@ -195,8 +195,8 @@ const Finance: React.FC = () => {
           </div>
         </div>
 
-        {/* 生活足迹 - 优化单元格尺寸 */}
-        <div className="bg-white p-5 rounded-[32px] shadow-sm border border-[#F0E6D2] animate-fade-in">
+        {/* 生活足迹 */}
+        <div className="bg-white p-5 rounded-[22px] shadow-sm border border-[#F0E6D2] animate-fade-in">
           <div className="flex justify-between items-center mb-4 px-1">
             <h3 className="font-black text-xs text-[#5D3A2F] flex items-center gap-1.5"><CalendarIcon size={16} className="text-[#FF5C00]" /> 生活足迹</h3>
             <span className="text-[10px] font-black text-[#B45309]/30">{currentYear}.{currentMonth + 1}</span>
@@ -218,7 +218,7 @@ const Finance: React.FC = () => {
           </div>
         </div>
 
-        {/* 明细列表 - 优化间距 */}
+        {/* 明细列表 */}
         <div className="space-y-3">
           <div className="flex justify-between items-center px-1">
              <h3 className="text-[13px] font-black text-[#5D3A2F]">{selectedDate.split('-')[2]}日 明细</h3>
@@ -253,10 +253,10 @@ const Finance: React.FC = () => {
         </div>
       </div>
 
-      {/* 记账弹窗优化 */}
+      {/* 记账弹窗 */}
       {isLogModalOpen && (
         <div className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-md flex items-end justify-center">
-          <div className="bg-[#FEFFF9] w-full max-w-[430px] rounded-t-[40px] p-6 animate-slide-up flex flex-col shadow-2xl">
+          <div className="bg-[#FEFFF9] w-full max-w-[430px] rounded-t-[22px] p-6 animate-slide-up flex flex-col shadow-2xl">
             <div className="w-10 h-1 bg-[#5D3A2F]/10 rounded-full mx-auto mb-6 shrink-0"></div>
             <header className="flex justify-between items-center mb-6">
                <h2 className="text-lg font-black text-[#5D3A2F]">{editingRecord ? '调整记账' : '速记一笔'}</h2>
@@ -273,7 +273,7 @@ const Finance: React.FC = () => {
                <input value={logDesc} onChange={e => setLogDesc(e.target.value)} placeholder="买了什么萝？" className="w-full bg-white border border-[#F0E6D2] px-5 py-3.5 rounded-xl font-black text-sm outline-none" />
                <input type="number" value={logAmount} onChange={e => setLogAmount(e.target.value)} placeholder="金额 ¥" className="w-full bg-white border border-[#F0E6D2] px-5 py-4 rounded-xl font-black text-[#FF5C00] text-xl outline-none" />
             </div>
-            <button onClick={handleQuickLog} className="w-full py-4 bg-[#FF5C00] text-white rounded-2xl font-black shadow-lg border-b-4 border-[#E65100] active:scale-95 transition-all">确认入账</button>
+            <button onClick={handleQuickLog} className="w-full py-4 bg-[#FF5C00] text-white rounded-[22px] font-black shadow-lg border-b-4 border-[#E65100] active:scale-95 transition-all">确认入账</button>
           </div>
         </div>
       )}

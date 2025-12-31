@@ -32,7 +32,7 @@ const Journal: React.FC = () => {
           sortedFeedbacks.map((f) => {
             const recipe = getRecipe(f.recipeId);
             return (
-              <div key={f.id} className="bg-white rounded-[35px] border-2 border-[#F0E6D2] overflow-hidden shadow-sm animate-fade-in">
+              <div key={f.id} className="bg-white rounded-[22px] border-2 border-[#F0E6D2] overflow-hidden shadow-sm animate-fade-in">
                 {f.image && (
                   <div className="relative aspect-video w-full">
                     <img src={f.image} className="w-full h-full object-cover" alt="Finished dish" />

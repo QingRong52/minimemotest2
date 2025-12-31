@@ -154,17 +154,17 @@ const Inventory: React.FC = () => {
         </div>
       </div>
 
-      {/* 悬浮操作按钮 - 改为固定定位 */}
+      {/* 悬浮操作按钮 */}
       <div className="fixed bottom-[96px] left-0 right-0 px-6 flex items-center justify-center gap-4 z-[50]">
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className="flex-1 max-w-[240px] h-[56px] bg-[#FF5C00] text-white flex items-center justify-center gap-3 rounded-[28px] font-black text-lg shadow-xl active:scale-95 transition-all border-b-[5px] border-[#E65100]"
+          className="flex-1 max-w-[240px] h-[56px] bg-[#FF5C00] text-white flex items-center justify-center gap-3 rounded-[22px] font-black text-lg shadow-xl active:scale-95 transition-all border-b-[5px] border-[#E65100]"
         >
           <ChefHat size={22} strokeWidth={3} /> 添加食材
         </button>
         <button 
           onClick={() => setIsCartOpen(true)}
-          className="w-[56px] h-[56px] bg-white text-[#FF5C00] rounded-[28px] flex items-center justify-center border-2 border-[#FF5C00]/10 shadow-lg active:scale-95 transition-all relative"
+          className="w-[56px] h-[56px] bg-white text-[#FF5C00] rounded-[22px] flex items-center justify-center border-2 border-[#FF5C00]/10 shadow-lg active:scale-95 transition-all relative"
         >
           <ShoppingCart size={22} strokeWidth={3} />
           {shoppingList.length > 0 && (
@@ -178,7 +178,7 @@ const Inventory: React.FC = () => {
       {/* 添加食材弹窗 */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xl flex items-end justify-center animate-fade-in">
-          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[82%] rounded-t-[50px] animate-slide-up flex flex-col shadow-2xl relative overflow-hidden border-t border-white/40">
+          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[82%] rounded-t-[22px] animate-slide-up flex flex-col shadow-2xl relative overflow-hidden border-t border-white/40">
             <div className="w-12 h-1.5 bg-[#5D3A2F]/10 rounded-full mx-auto mt-4 shrink-0"></div>
             <header className="px-8 pt-4 pb-4 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-4">
@@ -221,7 +221,7 @@ const Inventory: React.FC = () => {
               </div>
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FEFFF9] to-transparent">
-              <button onClick={handleAddIngredient} className="w-full h-14 bg-[#FF5C00] text-white rounded-[24px] font-black text-base shadow-xl border-b-4 border-[#E65100] active:scale-95 transition-all">现在录入</button>
+              <button onClick={handleAddIngredient} className="w-full h-14 bg-[#FF5C00] text-white rounded-[22px] font-black text-base shadow-xl border-b-4 border-[#E65100] active:scale-95 transition-all">现在录入</button>
             </div>
           </div>
         </div>
@@ -230,7 +230,7 @@ const Inventory: React.FC = () => {
       {/* 待购清单抽屉 */}
       {isCartOpen && (
         <div className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
-          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[78%] rounded-t-[45px] p-8 animate-slide-up flex flex-col shadow-2xl relative border-t-8 border-[#FF5C00]/10">
+          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[78%] rounded-t-[22px] p-8 animate-slide-up flex flex-col shadow-2xl relative border-t-8 border-[#FF5C00]/10">
             <div className="flex justify-between items-center mb-8 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-[#F0E6D2]"><ShoppingCart size={24} className="text-[#FF5C00]" strokeWidth={2.5} /></div>
@@ -241,7 +241,7 @@ const Inventory: React.FC = () => {
             <div className="flex-1 overflow-y-auto smooth-scroll no-scrollbar space-y-3 pb-32">
               {shoppingList.length > 0 ? (
                 shoppingList.map((item) => (
-                  <button key={item.id} onClick={() => toggleShoppingItem(item.id)} className={`w-full border-2 p-5 rounded-[28px] flex items-center justify-between shadow-sm transition-all duration-300 ${item.checked ? 'border-green-500 bg-green-50/30' : 'bg-white border-[#F0E6D2]'}`}>
+                  <button key={item.id} onClick={() => toggleShoppingItem(item.id)} className={`w-full border-2 p-5 rounded-[22px] flex items-center justify-between shadow-sm transition-all duration-300 ${item.checked ? 'border-green-500 bg-green-50/30' : 'bg-white border-[#F0E6D2]'}`}>
                     <div className="flex items-center gap-4">
                       <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${item.checked ? 'bg-green-500 border-green-500 text-white shadow-sm' : 'border-[#F0E6D2] text-transparent'}`}><CheckCircle2 size={16} strokeWidth={3} /></div>
                       <span className={`font-black text-[16px] ${item.checked ? 'text-green-700 line-through opacity-40' : 'text-[#5D3A2F]'}`}>{item.name}</span>
@@ -254,7 +254,7 @@ const Inventory: React.FC = () => {
               )}
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FEFFF9] to-transparent grid grid-cols-2 gap-4">
-              <button onClick={clearShoppingList} className="bg-[#B45309]/5 text-[#B45309]/40 py-5 rounded-[28px] font-black text-sm active:scale-[0.97] transition-all border border-[#B45309]/5">清空清单</button>
+              <button onClick={clearShoppingList} className="bg-[#B45309]/5 text-[#B45309]/40 py-5 rounded-[22px] font-black text-sm active:scale-[0.97] transition-all border border-[#B45309]/5">清空清单</button>
               <button onClick={() => {
                 const bought = shoppingList.filter(item => item.checked);
                 if (bought.length > 0) {
@@ -264,7 +264,7 @@ const Inventory: React.FC = () => {
                   setTempInventoryItems(items);
                   setIsInventoryCheckOpen(true);
                 }
-              }} disabled={!shoppingList.some(i => i.checked)} className="bg-[#5D3A2F] text-white py-5 rounded-[28px] font-black text-sm shadow-xl active:scale-[0.97] transition-all disabled:opacity-30">核对并入库</button>
+              }} disabled={!shoppingList.some(i => i.checked)} className="bg-[#5D3A2F] text-white py-5 rounded-[22px] font-black text-sm shadow-xl active:scale-[0.97] transition-all disabled:opacity-30">核对并入库</button>
             </div>
           </div>
         </div>
@@ -273,7 +273,7 @@ const Inventory: React.FC = () => {
       {/* 入库核对弹窗 */}
       {isInventoryCheckOpen && (
         <div className="fixed inset-0 z-[1200] bg-black/80 backdrop-blur-xl flex items-end justify-center animate-fade-in p-4 pb-12">
-          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[85%] rounded-[45px] p-8 animate-slide-up flex flex-col border border-white/20 shadow-2xl">
+          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[85%] rounded-[22px] p-8 animate-slide-up flex flex-col border border-white/20 shadow-2xl">
             <div className="flex justify-between items-center mb-8 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-[#F0E6D2]"><PackagePlus size={24} className="text-[#FF5C00]" strokeWidth={2.5} /></div>
@@ -283,7 +283,7 @@ const Inventory: React.FC = () => {
             </div>
             <div className="flex-1 overflow-y-auto smooth-scroll no-scrollbar space-y-6 pb-20">
               {tempInventoryItems.map((item, idx) => (
-                <div key={item.id} className="bg-white border-2 border-[#F0E6D2] p-6 rounded-[32px] space-y-6">
+                <div key={item.id} className="bg-white border-2 border-[#F0E6D2] p-6 rounded-[22px] space-y-6">
                   <span className="text-lg font-black text-[#3D2B1F] block">{item.name}</span>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
@@ -302,7 +302,7 @@ const Inventory: React.FC = () => {
               ))}
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FEFFF9] to-transparent">
-              <button onClick={handleConfirmBulkAdd} className="w-full h-16 bg-[#FF5C00] text-white py-5 rounded-[28px] font-black text-lg shadow-xl active:scale-[0.98] transition-all border-b-4 border-[#E65100]">确认批量入库</button>
+              <button onClick={handleConfirmBulkAdd} className="w-full h-16 bg-[#FF5C00] text-white py-5 rounded-[22px] font-black text-lg shadow-xl active:scale-[0.98] transition-all border-b-4 border-[#E65100]">确认批量入库</button>
             </div>
           </div>
         </div>
@@ -311,7 +311,7 @@ const Inventory: React.FC = () => {
       {/* 智选匹配弹窗 */}
       {isMagicMatchOpen && (
         <div className="fixed inset-0 z-[1300] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
-          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[82%] rounded-t-[45px] p-8 animate-slide-up flex flex-col shadow-2xl border-t border-white/40">
+          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[82%] rounded-t-[22px] p-8 animate-slide-up flex flex-col shadow-2xl border-t border-white/40">
             <div className="flex justify-between items-center mb-8 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-[#F0E6D2]"><Sparkles size={24} className="text-[#FF5C00]" strokeWidth={2.5} /></div>

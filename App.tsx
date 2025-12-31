@@ -12,6 +12,7 @@ import ImportXHS from './pages/ImportXHS';
 import ShoppingList from './pages/ShoppingList';
 import AddFeedback from './pages/AddFeedback';
 import Journal from './pages/Journal';
+import MultiCooking from './pages/MultiCooking';
 import { KitchenProvider } from './KitchenContext';
 
 const App: React.FC = () => {
@@ -30,6 +31,7 @@ const App: React.FC = () => {
             <Route path="/shopping-list" element={<ShoppingList />} />
             <Route path="/recipe/:id/add-feedback" element={<AddFeedback />} />
             <Route path="/journal" element={<Journal />} />
+            <Route path="/multi-cooking" element={<MultiCooking />} />
           </Routes>
         </Layout>
       </Router>

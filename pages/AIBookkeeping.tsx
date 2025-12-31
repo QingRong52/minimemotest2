@@ -17,7 +17,7 @@ declare global {
 
 const AIBookkeeping: React.FC = () => {
   const navigate = useNavigate();
-  const { chatHistory, updateChatHistory, addExpenses, clearChat, isAiProcessing, processBookkeeping, isOfflineMode, setOfflineMode, lastError } = useKitchen();
+  const { chatHistory, updateChatHistory, addExpenses, clearChat, isAiProcessing, processBookkeeping, isOfflineMode, setOfflineMode, lastError, setIsGlobalModalOpen } = useKitchen();
   const [inputText, setInputText] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showStatusTip, setShowStatusTip] = useState(false);
@@ -29,6 +29,12 @@ const AIBookkeeping: React.FC = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [chatHistory, isAiProcessing]);
+
+  // 同步全局状态
+  useEffect(() => {
+    setIsGlobalModalOpen(showStatusTip);
+    return () => setIsGlobalModalOpen(false);
+  }, [showStatusTip, setIsGlobalModalOpen]);
 
   // 处理 API Key 修复
   const handleFixApiKey = async () => {
@@ -111,7 +117,7 @@ const AIBookkeeping: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
-      <header className="px-6 pt-12 pb-4 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-[#F0E6D2] z-50 shrink-0">
+      <header className="px-6 pt-12 pb-4 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-[#F0E6D2] z-[100] sticky top-0 shrink-0">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-[#FFF9E8] flex items-center justify-center text-[#FF5C00] active:scale-90 transition-all">
             <ArrowLeft size={20} />
@@ -133,7 +139,7 @@ const AIBookkeeping: React.FC = () => {
             </div>
 
             {showStatusTip && (
-              <div className="absolute top-10 left-0 w-72 bg-white border border-[#F0E6D2] rounded-[32px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)] z-[100] animate-fade-in text-[#5D3A2F]">
+              <div className="absolute top-10 left-0 w-72 bg-white border border-[#F0E6D2] rounded-[22px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)] z-[4000] animate-fade-in text-[#5D3A2F]">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-[10px] font-black uppercase tracking-widest text-[#B45309]/40 flex items-center gap-1.5">
                     <Info size={12} /> 通道连接诊断
@@ -207,10 +213,10 @@ const AIBookkeeping: React.FC = () => {
         </button>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar smooth-scroll pb-24">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar smooth-scroll pb-24 relative z-10">
         {chatHistory.map((msg) => (
           <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-            <div className={`max-w-[88%] rounded-[28px] p-5 shadow-sm border relative ${msg.role === 'user' ? 'bg-[#FF5C00] text-white border-[#E65100] rounded-tr-none' : 'bg-white text-[#5D3A2F] border-[#F0E6D2] rounded-tl-none'}`}>
+            <div className={`max-w-[88%] rounded-[22px] p-5 shadow-sm border relative ${msg.role === 'user' ? 'bg-[#FF5C00] text-white border-[#E65100] rounded-tr-none' : 'bg-white text-[#5D3A2F] border-[#F0E6D2] rounded-tl-none'}`}>
               
               {msg.role === 'assistant' && msg.brainSource && (
                 <div className={`absolute -top-3 -right-2 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-tighter flex items-center gap-1 shadow-sm ${msg.brainSource === 'local' ? 'bg-[#5D3A2F] text-[#FFF9E8]' : 'bg-[#FF5C00] text-white'}`}>
@@ -276,7 +282,7 @@ const AIBookkeeping: React.FC = () => {
         ))}
         {isAiProcessing && (
           <div className="flex items-start gap-3 animate-fade-in">
-             <div className="bg-white border border-[#F0E6D2] px-6 py-4 rounded-[28px] rounded-tl-none flex items-center gap-3 shadow-sm">
+             <div className="bg-white border border-[#F0E6D2] px-6 py-4 rounded-[22px] rounded-tl-none flex items-center gap-3 shadow-sm">
                 <Loader2 size={16} className="text-[#FF5C00] animate-spin" />
                 <span className="text-xs font-black text-[#B45309]/40">
                   {isOfflineMode ? 'Lulu-Nano 本地处理中...' : '正在同步云端大脑...'}
@@ -286,14 +292,14 @@ const AIBookkeeping: React.FC = () => {
         )}
       </div>
 
-      <div className="p-6 pb-10 bg-white border-t border-[#F0E6D2] shrink-0 z-50">
+      <div className="p-6 pb-10 bg-white border-t border-[#F0E6D2] shrink-0 z-[100] relative">
         {selectedImage && (
           <div className="mb-4 relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-[#FF5C00] shadow-md animate-scale-up">
             <img src={selectedImage} className="w-full h-full object-cover" />
             <button onClick={() => setSelectedImage(null)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"><X size={12} /></button>
           </div>
         )}
-        <div className="flex items-center gap-3 bg-[#FFF9E8]/50 border-2 border-[#F0E6D2] rounded-[30px] p-2 pl-5 transition-all focus-within:border-[#FF5C00] focus-within:bg-white shadow-inner">
+        <div className="flex items-center gap-3 bg-[#FFF9E8]/50 border-2 border-[#F0E6D2] rounded-[22px] p-2 pl-5 transition-all focus-within:border-[#FF5C00] focus-within:bg-white shadow-inner">
           <input 
             value={inputText} 
             onChange={(e) => setInputText(e.target.value)} 

@@ -17,7 +17,7 @@ const CategoryIcon = ({ item }: { item: Ingredient }) => {
 // Fixed the component definition to correctly use React.FC with props interface
 const InventoryCard: React.FC<InventoryCardProps> = ({ item, onDelete }) => {
   return (
-    <div className="bg-[#FFF3D3] rounded-[24px] p-3 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] group relative border border-[#FBF4E4]">
+    <div className="bg-[#FFF3D3] rounded-[22px] p-3 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] group relative border border-[#FBF4E4]">
       {onDelete && (
         <button 
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}

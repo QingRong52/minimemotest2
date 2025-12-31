@@ -63,7 +63,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
-      <header className="flex justify-between items-end px-5 pt-12 pb-5 shrink-0 bg-[#FEFFF9]/90 backdrop-blur-md z-10 sticky top-0">
+      <header className="flex justify-between items-end px-5 pt-12 pb-5 shrink-0 bg-[#FEFFF9]/90 backdrop-blur-md z-[100] sticky top-0 border-b border-[#F0E6D2]/20">
         <div className="space-y-0.5">
           <h1 className="text-[26px] font-black text-[#5D3A2F] leading-none tracking-tighter">厨神好</h1>
           <p className="text-[#B45309]/40 text-[11px] font-bold tracking-tight">陛下请点单萝～</p>
@@ -78,7 +78,7 @@ const Home: React.FC = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll px-5 pb-32">
+      <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll px-5 pb-32 relative z-10">
         <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 mb-6 py-1 shrink-0">
           <button 
             onClick={() => setIsCategoryManagerOpen(true)}
@@ -134,7 +134,7 @@ const Home: React.FC = () => {
 
       {isCategoryManagerOpen && (
         <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-md flex items-end justify-center animate-fade-in">
-          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[85%] rounded-t-[40px] p-6 animate-slide-up flex flex-col shadow-2xl border-t border-white/40">
+          <div className="bg-[#FEFFF9] w-full max-w-[430px] h-[85%] rounded-t-[22px] p-6 animate-slide-up flex flex-col shadow-2xl border-t border-white/40">
             <div className="flex justify-between items-center mb-6 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-[#F0E6D2]">
@@ -145,7 +145,7 @@ const Home: React.FC = () => {
               <button onClick={() => setIsCategoryManagerOpen(false)} className="w-9 h-9 bg-[#FFF9E8] rounded-xl flex items-center justify-center text-[#FF5C00] border border-[#F0E6D2] active:scale-90 transition-all"><X size={18} strokeWidth={3} /></button>
             </div>
             <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll space-y-6 pb-10">
-              <div className="bg-white border border-[#F0E6D2] rounded-[30px] p-5 shadow-sm">
+              <div className="bg-white border border-[#F0E6D2] rounded-[22px] p-5 shadow-sm">
                 <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-4 mb-4 border-b border-[#F0E6D2]/50">
                   {ICON_OPTIONS.map(icon => (
                     <button key={icon} onClick={() => setNewCatIcon(icon)} className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${newCatIcon === icon ? 'bg-[#FF5C00] text-white shadow-lg scale-110' : 'bg-[#FFF9E8]/50 text-[#B45309]/30 border border-[#F0E6D2]'}`}>{getIcon(icon, 18)}</button>
@@ -158,7 +158,7 @@ const Home: React.FC = () => {
               </div>
               <div className="space-y-3">
                 {categories.map((cat, idx) => (
-                  <div key={cat.id} className={`bg-white border p-3.5 rounded-[24px] flex items-center justify-between transition-all ${editingCategory?.id === cat.id ? 'border-[#FF5C00] shadow-sm' : 'border-[#F0E6D2]'}`}>
+                  <div key={cat.id} className={`bg-white border p-3.5 rounded-[22px] flex items-center justify-between transition-all ${editingCategory?.id === cat.id ? 'border-[#FF5C00] shadow-sm' : 'border-[#F0E6D2]'}`}>
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${editingCategory?.id === cat.id ? 'bg-[#FF5C00] text-white' : 'bg-[#FFF9E8] text-[#FF5C00]'}`}>{getIcon(cat.icon, 18)}</div>
                       <span className="font-black text-[15px] text-[#5D3A2F]">{cat.label}</span>

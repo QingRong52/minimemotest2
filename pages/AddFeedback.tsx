@@ -57,7 +57,7 @@ const AddFeedback: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-8 pb-32">
         {/* 菜品摘要 */}
-        <div className="flex items-center gap-4 bg-white p-4 rounded-[30px] border border-[#F0E6D2] shadow-sm">
+        <div className="flex items-center gap-4 bg-white p-4 rounded-[22px] border border-[#F0E6D2] shadow-sm">
           <img src={recipe.image} className="w-16 h-16 rounded-2xl object-cover" alt="" />
           <div>
             <p className="font-black text-[#5D3A2F]">{recipe.name}</p>
@@ -68,7 +68,7 @@ const AddFeedback: React.FC = () => {
         {/* 满意度选择 */}
         <div className="space-y-4">
           <label className="text-[10px] font-black text-[#B45309]/40 uppercase tracking-[0.2em] px-2">满意度评估</label>
-          <div className="flex justify-between bg-white p-4 rounded-[35px] border-2 border-[#F0E6D2]">
+          <div className="flex justify-between bg-white p-4 rounded-[22px] border-2 border-[#F0E6D2]">
             {RATINGS.map((r) => (
               <button 
                 key={r.val} 
@@ -91,7 +91,7 @@ const AddFeedback: React.FC = () => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="陛下，这次出锅的奥义在哪里萝？"
-            className="w-full h-40 bg-white border-2 border-[#F0E6D2] rounded-[35px] p-6 font-bold text-[#5D3A2F] outline-none shadow-sm focus:border-[#FF5C00]/30 transition-all"
+            className="w-full h-40 bg-white border-2 border-[#F0E6D2] rounded-[22px] p-6 font-bold text-[#5D3A2F] outline-none shadow-sm focus:border-[#FF5C00]/30 transition-all"
           />
         </div>
 
@@ -100,7 +100,7 @@ const AddFeedback: React.FC = () => {
           <label className="text-[10px] font-black text-[#B45309]/40 uppercase tracking-[0.2em] px-2">成品快照</label>
           <div 
             onClick={() => fileInputRef.current?.click()}
-            className="w-full aspect-video bg-[#FFF9E8] border-4 border-dashed border-[#F0E6D2] rounded-[40px] flex flex-col items-center justify-center overflow-hidden relative cursor-pointer active:scale-[0.98] transition-all"
+            className="w-full aspect-video bg-[#FFF9E8] border-4 border-dashed border-[#F0E6D2] rounded-[22px] flex flex-col items-center justify-center overflow-hidden relative cursor-pointer active:scale-[0.98] transition-all"
           >
             {image ? (
               <img src={image} className="w-full h-full object-cover" alt="Result" />
@@ -118,7 +118,7 @@ const AddFeedback: React.FC = () => {
       <div className="absolute bottom-8 left-6 right-6">
         <button 
           onClick={handleSubmit}
-          className="w-full bg-[#FF5C00] text-white py-5 rounded-[28px] font-black text-lg shadow-xl border-b-6 border-[#E65100] active:scale-95 flex items-center justify-center gap-3"
+          className="w-full bg-[#FF5C00] text-white py-5 rounded-[22px] font-black text-lg shadow-xl border-b-6 border-[#E65100] active:scale-95 flex items-center justify-center gap-3"
         >
           <Send size={20} /> 发布心得萝
         </button>

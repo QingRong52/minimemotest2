@@ -12,7 +12,8 @@ const UNITS_SUGGESTIONS = ['g', '个', '克', '斤', '勺', '块', '把', '适�
 
 const ImportXHS: React.FC = () => {
   const navigate = useNavigate();
-  const { isRecipeImporting, importedRecipeResult, processRecipeImport, addRecipe, clearImportResult, categories } = useKitchen();
+  // Fixed: Corrected variable name from isRecipeImporting to isAiProcessing to match KitchenContext
+  const { isAiProcessing, importedRecipeResult, processRecipeImport, addRecipe, clearImportResult, categories } = useKitchen();
   const [inputText, setInputText] = useState('');
   const [editableRecipe, setEditableRecipe] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,8 +64,8 @@ const ImportXHS: React.FC = () => {
       </header>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar pb-32">
-        {!editableRecipe && !isRecipeImporting && (
-          <div className="bg-white p-6 rounded-[35px] border-2 border-[#F0E6D2] shadow-sm space-y-4 animate-fade-in">
+        {!editableRecipe && !isAiProcessing && (
+          <div className="bg-white p-6 rounded-[22px] border-2 border-[#F0E6D2] shadow-sm space-y-4 animate-fade-in">
              <div className="flex items-center gap-3 mb-2 px-1">
                <div className="w-10 h-10 bg-[#FFF9E8] rounded-2xl flex items-center justify-center text-[#FF5C00]"><Link2 size={20} /></div>
                <p className="text-sm font-black text-[#5D3A2F]">粘贴原文内容</p>
@@ -78,23 +79,23 @@ const ImportXHS: React.FC = () => {
              <button 
                onClick={handleStartImport}
                disabled={!inputText.trim()}
-               className="w-full bg-[#FF5C00] text-white py-5 rounded-[24px] font-black shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 border-b-4 border-[#E65100]"
+               className="w-full bg-[#FF5C00] text-white py-5 rounded-[22px] font-black shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 border-b-4 border-[#E65100]"
              >
                <Sparkles size={20} /> 开始解析
              </button>
           </div>
         )}
 
-        {isRecipeImporting && (
+        {isAiProcessing && (
            <div className="flex flex-col items-center justify-center py-20 text-center">
               <LuluChef size={140} className="mb-6 animate-pulse" />
               <p className="text-sm font-black text-[#5D3A2F]">萝萝正在研读陛下投喂的灵感萝...</p>
            </div>
         )}
 
-        {editableRecipe && !isRecipeImporting && (
+        {editableRecipe && !isAiProcessing && (
           <div className="animate-fade-in space-y-8 pb-10">
-             <div className="bg-white p-6 rounded-[40px] border-4 border-[#FF5C00] shadow-xl relative text-[#5D3A2F]">
+             <div className="bg-white p-6 rounded-[22px] border-4 border-[#FF5C00] shadow-xl relative text-[#5D3A2F]">
                 <div className="flex justify-between items-center mb-6">
                    <h3 className="text-xl font-black">✨ 御笔微调</h3>
                    <button onClick={() => { clearImportResult(); setEditableRecipe(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FFF9E8] text-[#FF5C00]"><X size={18} /></button>
@@ -106,7 +107,7 @@ const ImportXHS: React.FC = () => {
                      <label className="text-[10px] font-black text-[#B45309]/40 uppercase px-1">封面大赏</label>
                      <div 
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full h-40 bg-[#FFF9E8] rounded-3xl overflow-hidden flex flex-col items-center justify-center relative cursor-pointer border-2 border-dashed border-[#F0E6D2]"
+                        className="w-full h-40 bg-[#FFF9E8] rounded-2xl overflow-hidden flex flex-col items-center justify-center relative cursor-pointer border-2 border-dashed border-[#F0E6D2]"
                      >
                        {editableRecipe.image ? <img src={editableRecipe.image} className="w-full h-full object-cover" alt="" /> : <Camera className="text-[#FF5C00]/20" />}
                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
@@ -150,7 +151,7 @@ const ImportXHS: React.FC = () => {
                    </div>
                 </div>
 
-                <button onClick={handleConfirmSave} className="w-full mt-10 bg-[#FF5C00] text-white py-5 rounded-[28px] font-black shadow-xl border-b-6 border-[#E65100] active:scale-95 transition-all">
+                <button onClick={handleConfirmSave} className="w-full mt-10 bg-[#FF5C00] text-white py-5 rounded-[22px] font-black shadow-xl border-b-6 border-[#E65100] active:scale-95 transition-all">
                   录入秘籍萝
                 </button>
              </div>

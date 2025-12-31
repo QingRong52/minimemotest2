@@ -1,11 +1,33 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Camera, ListPlus } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Camera, ListPlus, Loader2, Info } from 'lucide-react';
 import { useKitchen } from '../KitchenContext';
 import { Recipe } from '../types';
 
 const UNITS_SUGGESTIONS = ['g', '个', '克', '斤', '勺', '块', '把', '适量'];
+
+// 图片压缩工具函数
+const compressImage = (base64: string, maxWidth = 800): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      if (width > maxWidth) {
+        height = (maxWidth / width) * height;
+        width = maxWidth;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+  });
+};
 
 const AddRecipe: React.FC = () => {
   const navigate = useNavigate();
@@ -16,10 +38,13 @@ const AddRecipe: React.FC = () => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState(categories[1]?.id || '厨神必做');
   const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [prepImage, setPrepImage] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<{amount: number, unit: string, name: string}[]>([]);
   const [steps, setSteps] = useState<{instruction: string, image?: string}[]>([{ instruction: '' }]);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const prepInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (editId) {
@@ -28,6 +53,7 @@ const AddRecipe: React.FC = () => {
         setName(existing.name);
         setCategory(existing.category);
         setCoverImage(existing.image);
+        setPrepImage(existing.prepImage || null);
         setIngredients(existing.ingredients.map(i => ({ 
           amount: i.amount,
           name: i.name,
@@ -38,11 +64,14 @@ const AddRecipe: React.FC = () => {
     }
   }, [editId, recipes]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => callback(reader.result as string);
+      reader.onloadend = async () => {
+        const compressed = await compressImage(reader.result as string);
+        callback(compressed);
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -65,44 +94,74 @@ const AddRecipe: React.FC = () => {
     setIngredients(newIngs);
   };
 
-  const save = () => {
+  const save = async () => {
     if (!name.trim()) return alert('请输入菜谱名称');
-    const recipeData: Recipe = {
-      id: editId || Date.now().toString(),
-      name,
-      image: coverImage || 'https://images.unsplash.com/photo-1546241072-48010ad28c2c?q=80&w=600&auto=format&fit=crop',
-      category,
-      ingredients: ingredients.map(i => ({
-        ingredientId: Math.random().toString(36).substr(2, 9),
-        amount: i.amount,
-        name: i.name,
-        unit: i.unit
-      })) as any,
-      steps: steps.map((s, i) => ({ id: i, ...s }))
-    };
-    if (editId) updateRecipe(recipeData);
-    else addRecipe(recipeData);
-    navigate(editId ? `/recipe/${editId}` : '/');
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    try {
+      const recipeData: Recipe = {
+        id: editId || Date.now().toString(),
+        name,
+        image: coverImage || 'https://images.unsplash.com/photo-1546241072-48010ad28c2c?q=80&w=600&auto=format&fit=crop',
+        prepImage: prepImage || undefined,
+        category,
+        ingredients: ingredients.map(i => ({
+          ingredientId: Math.random().toString(36).substr(2, 9),
+          amount: i.amount,
+          name: i.name,
+          unit: i.unit
+        })) as any,
+        steps: steps.map((s, i) => ({ id: i, ...s }))
+      };
+
+      if (editId) updateRecipe(recipeData);
+      else addRecipe(recipeData);
+      
+      navigate(editId ? `/recipe/${editId}` : '/');
+    } catch (err: any) {
+      if (err.name === 'QuotaExceededError') {
+        alert('陛下，手机书架太挤啦（存储空间不足）！请清理一下旧菜谱再录入萝～');
+      } else {
+        alert('保存出了点小意外：' + err.message);
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="h-full bg-[#FEFFF9] flex flex-col overflow-hidden animate-fade-in relative">
-      <header className="px-6 pt-12 pb-4 flex items-center gap-4 bg-white/90 backdrop-blur-md border-b border-[#F0E6D2] shrink-0 z-10">
+      <header className="px-6 pt-12 pb-4 flex items-center gap-4 bg-white/90 backdrop-blur-md border-b border-[#F0E6D2] shrink-0 z-[100] sticky top-0">
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-[#FFF9E8] flex items-center justify-center text-[#FF5C00] active:scale-90 transition-all shadow-sm">
           <ArrowLeft size={20} />
         </button>
         <h2 className="text-[18px] font-black text-[#5D3A2F]">{editId ? '调整秘籍' : '开创秘籍'}</h2>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll px-6 py-6 pb-48 space-y-8">
-        <div className="space-y-3">
-          <label className="text-xs font-black text-[#B45309]/40 uppercase tracking-widest">成品图片</label>
-          <div 
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full aspect-video bg-[#FFF9E8] border-2 border-dashed border-[#F0E6D2] rounded-[32px] overflow-hidden flex flex-col items-center justify-center relative cursor-pointer active:scale-95 transition-all shadow-sm"
-          >
-            {coverImage ? <img src={coverImage} className="w-full h-full object-cover" /> : <><Camera size={32} className="text-[#FF5C00]/30 mb-2" /><span className="text-xs font-bold text-[#B45309]/30">上传成品照</span></>}
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, setCoverImage)} />
+      <div className="flex-1 overflow-y-auto no-scrollbar smooth-scroll px-6 py-6 pb-48 space-y-8 relative z-10">
+        
+        {/* 图片区域 */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-[#B45309]/40 uppercase tracking-widest flex items-center gap-1">成品图</label>
+            <div 
+              onClick={() => coverInputRef.current?.click()}
+              className="w-full aspect-square bg-[#FFF9E8] border-2 border-dashed border-[#F0E6D2] rounded-[22px] overflow-hidden flex flex-col items-center justify-center relative cursor-pointer active:scale-95 transition-all shadow-sm"
+            >
+              {coverImage ? <img src={coverImage} className="w-full h-full object-cover" /> : <><Camera size={24} className="text-[#FF5C00]/30 mb-1" /><span className="text-[9px] font-bold text-[#B45309]/30">成品照</span></>}
+              <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, setCoverImage)} />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-[#B45309]/40 uppercase tracking-widest flex items-center gap-1">备菜图</label>
+            <div 
+              onClick={() => prepInputRef.current?.click()}
+              className="w-full aspect-square bg-[#FFF9E8] border-2 border-dashed border-[#F0E6D2] rounded-[22px] overflow-hidden flex flex-col items-center justify-center relative cursor-pointer active:scale-95 transition-all shadow-sm"
+            >
+              {prepImage ? <img src={prepImage} className="w-full h-full object-cover" /> : <><Camera size={24} className="text-[#FF5C00]/30 mb-1" /><span className="text-[9px] font-bold text-[#B45309]/30">备菜图</span></>}
+              <input ref={prepInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, setPrepImage)} />
+            </div>
           </div>
         </div>
 
@@ -126,7 +185,7 @@ const AddRecipe: React.FC = () => {
           </div>
           <div className="space-y-4">
             {ingredients.map((ing, idx) => (
-              <div key={idx} className="bg-white border border-[#F0E6D2] p-5 rounded-[28px] shadow-sm">
+              <div key={idx} className="bg-white border border-[#F0E6D2] p-5 rounded-[22px] shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
                   <input type="text" placeholder="食材名" className="flex-1 bg-[#FFF9E8]/50 border-none px-4 py-3 rounded-xl font-black text-[#5D3A2F] text-sm outline-none" value={ing.name} onChange={e => updateIngredientField(idx, 'name', e.target.value)} />
                   <button onClick={() => setIngredients(ingredients.filter((_, i) => i !== idx))} className="w-10 h-10 rounded-xl bg-red-50 text-red-400 flex items-center justify-center shrink-0 active:scale-90"><Trash2 size={16} /></button>
@@ -161,7 +220,7 @@ const AddRecipe: React.FC = () => {
           </div>
           <div className="space-y-8">
             {steps.map((step, idx) => (
-              <div key={idx} className="bg-white border border-[#F0E6D2] rounded-[32px] p-6 shadow-sm space-y-4">
+              <div key={idx} className="bg-white border border-[#F0E6D2] rounded-[22px] p-6 shadow-sm space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="w-8 h-8 rounded-xl bg-[#5D3A2F] text-white flex items-center justify-center font-black text-xs">{idx + 1}</span>
                   {steps.length > 1 && <button onClick={() => removeStep(idx)} className="text-red-200 hover:text-red-400 p-1"><Trash2 size={18} /></button>}
@@ -178,8 +237,15 @@ const AddRecipe: React.FC = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-8 pb-10 bg-gradient-to-t from-[#FEFFF9] via-[#FEFFF9] to-transparent shrink-0 z-20">
-        <button onClick={save} className="w-full bg-[#FF5C00] text-white py-5 rounded-[28px] font-black text-xl shadow-2xl active:scale-95 transition-all border-b-6 border-[#E65100]">大功告成萝</button>
+      <div className="absolute bottom-0 left-0 right-0 p-8 pb-10 bg-gradient-to-t from-[#FEFFF9] via-[#FEFFF9] to-transparent shrink-0 z-20 pointer-events-none">
+        <button 
+          onClick={save} 
+          disabled={isSaving}
+          className={`w-full bg-[#FF5C00] text-white py-5 rounded-[22px] font-black text-xl shadow-2xl active:scale-95 transition-all border-b-6 border-[#E65100] flex items-center justify-center gap-3 pointer-events-auto ${isSaving ? 'opacity-70' : ''}`}
+        >
+          {isSaving ? <Loader2 size={24} className="animate-spin" /> : null}
+          <span>{isSaving ? '正在录入...' : '大功告成萝'}</span>
+        </button>
       </div>
     </div>
   );

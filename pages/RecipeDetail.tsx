@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, ShoppingCart, Edit3, 
-  Star, CalendarPlus, CheckCircle2, Heart
+  Star, CalendarPlus, CheckCircle2, X
 } from 'lucide-react';
 import { useKitchen } from '../KitchenContext';
 import { LuluChef } from '../components/LuluIcons';
@@ -14,6 +14,7 @@ const RecipeDetail: React.FC = () => {
   const { recipes, addToShoppingList, feedbacks, addMealPlan } = useKitchen();
 
   const [showToast, setShowToast] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const recipe = useMemo(() => recipes.find(r => r.id === id), [id, recipes]);
   const recipeFeedbacks = useMemo(() => feedbacks.filter(f => f.recipeId === id), [id, feedbacks]);
@@ -39,7 +40,20 @@ const RecipeDetail: React.FC = () => {
 
   return (
     <div className="h-full bg-black flex flex-col relative overflow-hidden animate-fade-in">
-      {/* 顶部悬浮栏 - 优化按钮圆角 */}
+      {/* 图片放大预览层 */}
+      {zoomedImage && (
+        <div 
+          className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setZoomedImage(null)}
+        >
+          <button className="absolute top-12 right-6 text-white bg-white/10 p-3 rounded-full backdrop-blur-md">
+            <X size={24} />
+          </button>
+          <img src={zoomedImage} className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl animate-modal-pop" alt="Zoomed" />
+        </div>
+      )}
+
+      {/* 顶部导航 */}
       <div className="fixed top-12 left-5 right-5 flex justify-between items-center z-[100]">
         <button 
           onClick={() => navigate('/')} 
@@ -63,24 +77,19 @@ const RecipeDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* 沉浸式封面大图 */}
-      <div className="absolute top-0 left-0 w-full h-[55vh] z-0 overflow-hidden">
+      {/* 沉浸式封面 */}
+      <div className="absolute top-0 left-0 w-full h-[55vh] z-0 overflow-hidden cursor-zoom-in" onClick={() => setZoomedImage(recipe.image)}>
         <img src={recipe.image} alt={recipe.name} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
       </div>
 
-      {/* 内容滚动区 - 圆角上限 22px */}
       <div className="flex-1 overflow-y-auto no-scrollbar relative z-10 pt-[45vh] smooth-scroll">
         <div className="bg-[#FEFFF9] rounded-t-[22px] px-6 pt-8 pb-32 space-y-10 shadow-[0_-15px_40px_rgba(0,0,0,0.15)]">
-          
-          {/* 标题区 */}
           <section className="animate-slide-up">
             <h1 className="text-[26px] font-black text-[#3D2B1F] leading-tight tracking-tight mb-2">{recipe.name}</h1>
             <div className="w-12 h-1 bg-[#FF5C00] rounded-full opacity-20"></div>
           </section>
 
-          {/* 食材墙 */}
           <section className="space-y-5">
             <div className="flex items-center gap-2">
               <div className="w-1 h-5 bg-[#FF5C00] rounded-full"></div>
@@ -98,11 +107,10 @@ const RecipeDetail: React.FC = () => {
               onClick={handleAddToCart}
               className="w-full flex items-center justify-center gap-2 text-[#FF5C00] font-black text-sm bg-[#FFF9E8] py-4 rounded-[22px] border border-[#F0E6D2] active:scale-[0.98] transition-all mt-4"
             >
-              <ShoppingCart size={18} /> 一键加入采购清单
+              <ShoppingCart size={18} /> 一键同步待购清单
             </button>
           </section>
 
-          {/* 步骤流程 - 卡片圆角 22px */}
           <section className="space-y-6">
             <div className="flex items-center gap-2">
               <div className="w-1 h-5 bg-[#FF5C00] rounded-full"></div>
@@ -117,7 +125,10 @@ const RecipeDetail: React.FC = () => {
                   </div>
                   <p className="text-[#3D2B1F] font-bold text-[15px] leading-[1.7] px-1">{step.instruction}</p>
                   {step.image && (
-                    <div className="rounded-[22px] overflow-hidden bg-[#FFF9E8] border border-[#F0E6D2] shadow-sm aspect-video">
+                    <div 
+                      className="rounded-[22px] overflow-hidden bg-[#FFF9E8] border border-[#F0E6D2] shadow-sm aspect-video cursor-zoom-in"
+                      onClick={() => setZoomedImage(step.image!)}
+                    >
                        <img src={step.image} className="w-full h-full object-cover" alt="" />
                     </div>
                   )}
@@ -126,7 +137,6 @@ const RecipeDetail: React.FC = () => {
             </div>
           </section>
 
-          {/* 御批区 - 卡片圆角 22px */}
           <section className="space-y-5">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
@@ -143,7 +153,14 @@ const RecipeDetail: React.FC = () => {
             <div className="space-y-3">
               {recipeFeedbacks.length > 0 ? recipeFeedbacks.map(f => (
                 <div key={f.id} className="bg-white p-4 rounded-[22px] border border-[#F0E6D2] flex gap-4 shadow-sm">
-                  {f.image && <img src={f.image} className="w-16 h-16 rounded-[14px] object-cover shrink-0" />}
+                  {f.image && (
+                    <img 
+                      src={f.image} 
+                      className="w-16 h-16 rounded-[14px] object-cover shrink-0 cursor-zoom-in" 
+                      onClick={() => setZoomedImage(f.image!)}
+                      alt="Feedback"
+                    />
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex gap-0.5 mb-2">
                       {[1,2,3,4,5].map(s => <Star key={s} size={10} fill={s <= f.rating ? '#FFB800' : 'none'} stroke={s <= f.rating ? '#FFB800' : '#E6E6E6'} />)}

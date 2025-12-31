@@ -28,6 +28,7 @@ export interface Recipe {
   id: string;
   name: string;
   image: string;
+  prepImage?: string; // 新增：备菜阶段图片
   category: string;
   description?: string;
   ingredients: {

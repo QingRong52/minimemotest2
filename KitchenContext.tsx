@@ -49,6 +49,7 @@ interface KitchenContextType {
   categoryBudgets: CategoryBudgets;
   isAiProcessing: boolean;
   isOfflineMode: boolean;
+  isGlobalModalOpen: boolean; // 新增：全局弹窗状态
   lastError: string | null;
   importedRecipeResult: any | null;
   addRecipe: (recipe: Recipe) => void;
@@ -63,6 +64,7 @@ interface KitchenContextType {
   clearQueue: () => void;
   addToShoppingList: (items: {name: string, price?: number}[]) => void;
   toggleShoppingItem: (id: string) => void;
+  updateShoppingItem: (id: string, fields: Partial<ShoppingItem>) => void;
   clearShoppingList: () => void;
   addExpense: (record: Omit<ExpenseRecord, 'id'>) => void;
   updateExpense: (id: string, record: Partial<ExpenseRecord>) => void;
@@ -73,6 +75,7 @@ interface KitchenContextType {
   updateChatHistory: (messages: ChatMessage[]) => void;
   clearChat: () => void;
   setOfflineMode: (offline: boolean) => void;
+  setIsGlobalModalOpen: (isOpen: boolean) => void; // 新增：设置全局弹窗状态
   addMealPlan: (plan: Omit<MealPlan, 'id'>) => void;
   removeMealPlan: (id: string) => void;
   addFeedback: (feedback: Omit<RecipeFeedback, 'id'>) => void;
@@ -92,12 +95,12 @@ const luluLocalBrain = (text: string) => {
   }
 
   const scores = { eat: 0, life: 0, rent: 0, play: 0 };
-  const input = text.toLowerCase();
+  const input = (text || "").toLowerCase();
   const lexicon = {
-    eat: ['饭', '菜', '面', '肉', '喝', '水', '餐', '超市', '美团', '饿了么', '排骨', '瑞幸', '星巴克', '咖啡', '火锅'],
-    play: ['玩', '游戏', '电影', '网费', '蹦迪', 'ktv', '酒吧', '旅游', '门票'],
-    rent: ['房租', '水电', '物业', '煤气', '房东'],
-    life: ['车', '交通', '油', '充值', '话费', '衣服', '淘宝', '拼多多', '京东', '日用', '理发']
+    eat: ['饭', '菜', '面', '肉', '喝', '水', '餐', '超市', '美团', '饿了么', '排骨', '瑞幸', '星巴克', '咖啡', '火锅', '披萨', '汉堡', '水果'],
+    play: ['玩', '游戏', '电影', '网费', '蹦迪', 'ktv', '酒吧', '旅游', '门票', '皮肤', '会员'],
+    rent: ['房租', '水电', '物业', '煤气', '房东', '宽带', '燃气'],
+    life: ['车', '交通', '油', '充值', '话费', '衣服', '淘宝', '拼多多', '京东', '日用', '理发', '打车', '地铁', '公交']
   };
 
   Object.entries(lexicon).forEach(([cat, keywords]) => {
@@ -115,7 +118,7 @@ const luluLocalBrain = (text: string) => {
   return {
     items: [{ amount, description, category: categoryMap[bestCategory], date: new Date().toISOString().split('T')[0] }],
     responseText: amount > 0 
-      ? `【本地内核 Lulu-Nano】已启动萝！陛下是不是刚才花了 ${amount} 元？萝萝已经帮陛下初步整理好分类萝！`
+      ? `【本地内核 Lulu-Nano】陛下是不是刚才花了 ${amount} 元？萝萝已经帮陛下初步整理好分类萝！`
       : `陛下，本地内核没能从文字里搜寻到金额萝...您手动输入一下，萝萝这就帮您存进本地硬盘！`
   };
 };
@@ -177,19 +180,30 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [isGlobalModalOpen, setIsGlobalModalOpen] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [importedRecipeResult, setImportedRecipeResult] = useState<any | null>(null);
 
-  useEffect(() => { localStorage.setItem('kitchen_recipes', JSON.stringify(recipes)); }, [recipes]);
-  useEffect(() => { localStorage.setItem('kitchen_categories', JSON.stringify(categories)); }, [categories]);
-  useEffect(() => { localStorage.setItem('kitchen_cooking_queue', JSON.stringify(cookingQueue)); }, [cookingQueue]);
-  useEffect(() => { localStorage.setItem('kitchen_shopping_list', JSON.stringify(shoppingList)); }, [shoppingList]);
-  useEffect(() => { localStorage.setItem('kitchen_expenses', JSON.stringify(expenseRecords)); }, [expenseRecords]);
-  useEffect(() => { localStorage.setItem('kitchen_chat_history', JSON.stringify(chatHistory)); }, [chatHistory]);
-  useEffect(() => { localStorage.setItem('kitchen_meal_plans', JSON.stringify(mealPlans)); }, [mealPlans]);
-  useEffect(() => { localStorage.setItem('kitchen_feedbacks', JSON.stringify(feedbacks)); }, [feedbacks]);
-  useEffect(() => { localStorage.setItem('kitchen_budget', monthlyBudget.toString()); }, [monthlyBudget]);
-  useEffect(() => { localStorage.setItem('kitchen_category_budgets', JSON.stringify(categoryBudgets)); }, [categoryBudgets]);
+  const trySave = (key: string, data: any) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (e: any) {
+      if (e.name === 'QuotaExceededError') {
+        console.error('Storage Quota Exceeded!');
+      }
+    }
+  };
+
+  useEffect(() => { trySave('kitchen_recipes', recipes); }, [recipes]);
+  useEffect(() => { trySave('kitchen_categories', categories); }, [categories]);
+  useEffect(() => { trySave('kitchen_cooking_queue', cookingQueue); }, [cookingQueue]);
+  useEffect(() => { trySave('kitchen_shopping_list', shoppingList); }, [shoppingList]);
+  useEffect(() => { trySave('kitchen_expenses', expenseRecords); }, [expenseRecords]);
+  useEffect(() => { trySave('kitchen_chat_history', chatHistory); }, [chatHistory]);
+  useEffect(() => { trySave('kitchen_meal_plans', mealPlans); }, [mealPlans]);
+  useEffect(() => { trySave('kitchen_feedbacks', feedbacks); }, [feedbacks]);
+  useEffect(() => { trySave('kitchen_budget', monthlyBudget.toString()); }, [monthlyBudget]);
+  useEffect(() => { trySave('kitchen_category_budgets', JSON.stringify(categoryBudgets)); }, [categoryBudgets]);
 
   const addRecipe = (newRecipe: Recipe) => setRecipes(prev => [newRecipe, ...prev]);
   const updateRecipe = (updated: Recipe) => setRecipes(prev => prev.map(r => r.id === updated.id ? updated : r));
@@ -207,10 +221,13 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const removeFromQueue = (id: string) => setCookingQueue(prev => prev.filter(i => i !== id));
   const clearQueue = () => setCookingQueue([]);
   const addToShoppingList = (items: {name: string, price?: number}[]) => {
-    const newItems: ShoppingItem[] = items.map(item => ({ id: Math.random().toString(36).substr(2, 9), name: item.name, checked: false, price: item.price }));
+    const newItems: ShoppingItem[] = items.map(item => ({ id: Math.random().toString(36).substr(2, 9), name: item.name, checked: false, price: item.price || 0 }));
     setShoppingList(prev => [...prev, ...newItems]);
   };
   const toggleShoppingItem = (id: string) => { setShoppingList(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item)); };
+  const updateShoppingItem = (id: string, fields: Partial<ShoppingItem>) => {
+    setShoppingList(prev => prev.map(item => item.id === id ? { ...item, ...fields } : item));
+  };
   const clearShoppingList = () => setShoppingList([]);
   const addExpense = (record: Omit<ExpenseRecord, 'id'>) => {
     const newRecord: ExpenseRecord = { ...record, id: Math.random().toString(36).substr(2, 9) };
@@ -252,7 +269,6 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsAiProcessing(true);
     setLastError(null);
     try {
-      // 动态读取 API KEY，确保 openSelectKey 后的新 Key 能生效
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = `你是一个专业的财务记账助理萝萝。JSON 格式返回：{ "items": [{ "amount": 数字, "description": "描述", "category": "吃/生活/房租/娱乐", "date": "YYYY-MM-DD" }], "responseText": "反馈" }`;
 
@@ -290,11 +306,11 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setChatHistory(prev => [...prev, { 
         id: Date.now().toString(), 
         role: 'assistant', 
-        content: `【云端连接故障】陛下，通行证（API Key）似乎无效萝！(Code: ${errorMsg.includes('400') ? 'API_KEY_INVALID' : 'Connection Limit'})。萝萝已自动切换到本地内核为您处理：\n\n` + localRes.responseText, 
+        content: `【云端连接故障】陛下，通行证无效萝！萝萝已切换到本地核心处理：\n\n` + localRes.responseText, 
         data: localRes.items,
         brainSource: 'local',
         errorCode: errorMsg,
-        image: imageBase64 // 保留图片引用，方便重试
+        image: imageBase64
       }]);
     } finally {
       setIsAiProcessing(false);
@@ -324,11 +340,11 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
   return (
     <KitchenContext.Provider value={{ 
       recipes, categories, cookingQueue, shoppingList, expenseRecords, chatHistory, mealPlans, feedbacks, monthlyBudget, categoryBudgets,
-      isAiProcessing, isOfflineMode, lastError, importedRecipeResult,
+      isAiProcessing, isOfflineMode, isGlobalModalOpen, lastError, importedRecipeResult,
       addRecipe, updateRecipe, deleteRecipe, addCategory, updateCategory, deleteCategory, reorderCategories,
-      addToQueue, removeFromQueue, clearQueue, addToShoppingList, toggleShoppingItem, clearShoppingList,
+      addToQueue, removeFromQueue, clearQueue, addToShoppingList, toggleShoppingItem, updateShoppingItem, clearShoppingList,
       addExpense, updateExpense, addExpenses, deleteExpense, setMonthlyBudget, setCategoryBudgets, updateChatHistory, clearChat,
-      setOfflineMode, addMealPlan, removeMealPlan, addFeedback, processBookkeeping, processRecipeImport, clearImportResult
+      setOfflineMode, setIsGlobalModalOpen, addMealPlan, removeMealPlan, addFeedback, processBookkeeping, processRecipeImport, clearImportResult
     }}>
       {children}
     </KitchenContext.Provider>
