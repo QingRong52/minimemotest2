@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Send, Camera, Sparkles, 
-  Trash2, CheckCircle2, X, Loader2, ListChecks, CheckCircle, Wifi, WifiOff, Cpu, Info, AlertTriangle, Key, ExternalLink
+  Trash2, CheckCircle2, X, Loader2, ListChecks, CheckCircle, Wifi, WifiOff, Cpu, Info, AlertTriangle, Key, ExternalLink, RefreshCw
 } from 'lucide-react';
 import { useKitchen, ChatMessage } from '../KitchenContext';
 
@@ -30,24 +30,22 @@ const AIBookkeeping: React.FC = () => {
     }
   }, [chatHistory, isAiProcessing]);
 
-  // 处理 API Key 选择
-  const handleConfigureKey = async () => {
+  // 处理 API Key 修复
+  const handleFixApiKey = async () => {
     try {
-      // 调起 AI Studio 官方密钥选择器
+      // 调起官方密钥选择器
       await window.aistudio.openSelectKey();
       
-      // 规范：授权后假定成功并关闭提示
+      // 关闭面板
       setShowStatusTip(false);
       
-      // 自动重试最后一条消息
-      if (chatHistory.length > 1) {
-        const lastUserMsg = [...chatHistory].reverse().find(m => m.role === 'user');
-        if (lastUserMsg) {
-          processBookkeeping(lastUserMsg.content, lastUserMsg.image);
-        }
+      // 规范：授权后假定成功，尝试自动重试最后一条用户指令
+      const lastUserMsg = [...chatHistory].reverse().find(m => m.role === 'user');
+      if (lastUserMsg) {
+        processBookkeeping(lastUserMsg.content, lastUserMsg.image);
       }
     } catch (err) {
-      console.error("密钥授权弹窗调用失败:", err);
+      console.error("无法调起密钥选择器:", err);
     }
   };
 
@@ -108,7 +106,8 @@ const AIBookkeeping: React.FC = () => {
     updateChatHistory([...newHistory, feedbackMsg]);
   };
 
-  const isKeyError = lastError?.includes('API_KEY_INVALID') || lastError?.includes('400');
+  // 精准识别 Key 失效错误 (400)
+  const isKeyInvalid = lastError?.includes('API_KEY_INVALID') || lastError?.includes('400');
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
@@ -125,11 +124,11 @@ const AIBookkeeping: React.FC = () => {
                 className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black transition-all ${
                   isOfflineMode 
                   ? 'bg-gray-100 text-gray-400' 
-                  : (lastError ? 'bg-red-50 text-red-400 animate-pulse' : 'bg-green-50 text-green-500 border border-green-200')
+                  : (isKeyInvalid ? 'bg-red-500 text-white animate-pulse shadow-sm' : (lastError ? 'bg-amber-100 text-amber-500' : 'bg-green-50 text-green-500'))
                 }`}
                >
-                 {isOfflineMode ? <WifiOff size={10} /> : (lastError ? <AlertTriangle size={10} /> : <Wifi size={10} />)}
-                 {isOfflineMode ? '本地离线' : (lastError ? '云端受限' : '云端在线')}
+                 {isOfflineMode ? <WifiOff size={10} /> : (isKeyInvalid ? <Key size={10} /> : (lastError ? <AlertTriangle size={10} /> : <Wifi size={10} />))}
+                 {isOfflineMode ? '本地离线' : (isKeyInvalid ? '钥匙失效' : (lastError ? '连接受阻' : '云端在线'))}
                </button>
             </div>
 
@@ -137,7 +136,7 @@ const AIBookkeeping: React.FC = () => {
               <div className="absolute top-10 left-0 w-72 bg-white border border-[#F0E6D2] rounded-[32px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.15)] z-[100] animate-fade-in text-[#5D3A2F]">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-[10px] font-black uppercase tracking-widest text-[#B45309]/40 flex items-center gap-1.5">
-                    <Info size={12} /> 核心诊断中心
+                    <Info size={12} /> 通道连接诊断
                   </span>
                   <button onClick={() => setShowStatusTip(false)} className="w-6 h-6 rounded-full bg-[#FFF9E8] flex items-center justify-center text-[#FF5C00]"><X size={12} /></button>
                 </div>
@@ -145,45 +144,50 @@ const AIBookkeeping: React.FC = () => {
                 <div className="space-y-4">
                   <div className="bg-[#FEFFF9] p-3 rounded-2xl border border-[#F0E6D2]/60 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold opacity-60">网络连通性</span>
-                      <div className={`w-2 h-2 rounded-full ${navigator.onLine ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <span className="text-xs font-bold opacity-60">网络魔法状态</span>
+                      <div className={`flex items-center gap-1 text-[10px] font-black ${navigator.onLine ? 'text-green-500' : 'text-red-500'}`}>
+                        {navigator.onLine ? '正常' : '断开'} <div className={`w-2 h-2 rounded-full ${navigator.onLine ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold opacity-60">Gemini 响应</span>
-                      <div className={`w-2 h-2 rounded-full ${lastError ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                      <span className="text-xs font-bold opacity-60">API Key 校验</span>
+                      <div className={`w-2 h-2 rounded-full ${isKeyInvalid ? 'bg-red-500' : (lastError ? 'bg-amber-500' : 'bg-green-500')}`}></div>
                     </div>
                   </div>
 
-                  {lastError && (
-                    <div className="bg-red-50/50 p-3 rounded-2xl border border-red-100">
-                      <p className="text-[10px] text-red-500 font-black mb-1 flex items-center gap-1">
-                        <AlertTriangle size={10} /> 异常报告
+                  {isKeyInvalid && (
+                    <div className="bg-red-50 p-4 rounded-2xl border border-red-100 space-y-3">
+                      <p className="text-[11px] font-black text-red-600 flex items-center gap-1">
+                        <AlertTriangle size={12} /> 陛下的通行证无效萝！
                       </p>
-                      <p className="text-[9px] text-red-400 font-mono break-all leading-relaxed line-clamp-3 italic">
-                        {lastError}
+                      <p className="text-[9px] text-red-500/70 leading-relaxed">
+                        目前的 API Key 无法通过验证。即使是免费模式，也需要绑定一个有效的、开启了付费模式（有免费额度）的 Project。
                       </p>
+                      <button 
+                        onClick={handleFixApiKey}
+                        className="w-full py-3 bg-[#FF5C00] text-white rounded-xl font-black text-[11px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+                      >
+                        <RefreshCw size={12} /> 重新授权 API Key
+                      </button>
+                      <div className="flex flex-col gap-1.5 pt-1">
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-[8px] font-bold text-[#FF5C00] underline flex items-center gap-1">
+                          去 AI Studio 申请免费 Key <ExternalLink size={8} />
+                        </a>
+                        <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="text-[8px] font-bold text-[#B45309]/30 flex items-center gap-1">
+                          查看官方计费/免费额度说明 <ExternalLink size={8} />
+                        </a>
+                      </div>
                     </div>
                   )}
 
-                  {isKeyError && (
-                    <div className="space-y-3">
-                      <div className="bg-[#FFF9E8] p-3 rounded-xl border border-[#F0E6D2]/50 text-[10px] font-bold text-[#B45309]">
-                        陛下，目前的 API Key 已失效萝。请点击下方按钮重新从 AI Studio 选择一个有效的付费项目密钥。
-                      </div>
-                      <button 
-                        onClick={handleConfigureKey}
-                        className="w-full py-3.5 bg-[#FF5C00] text-white rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 border-b-4 border-[#E65100]"
-                      >
-                        <Key size={14} /> 重新配置有效 API Key
-                      </button>
-                      <a 
-                        href="https://ai.google.dev/gemini-api/docs/billing" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-1 text-[9px] font-black text-[#B45309]/40 hover:text-[#FF5C00] transition-colors"
-                      >
-                        查看 API 计费说明文档 <ExternalLink size={8} />
-                      </a>
+                  {!isKeyInvalid && lastError && (
+                    <div className="bg-amber-50 p-3 rounded-2xl border border-amber-100">
+                      <p className="text-[10px] text-amber-600 font-black mb-1 flex items-center gap-1">
+                        <AlertTriangle size={10} /> 云端异常报告
+                      </p>
+                      <p className="text-[8px] text-amber-500/70 font-mono break-all leading-tight italic">
+                        {lastError}
+                      </p>
                     </div>
                   )}
 
@@ -191,7 +195,7 @@ const AIBookkeeping: React.FC = () => {
                     onClick={() => { setOfflineMode(!isOfflineMode); setShowStatusTip(false); }}
                     className="w-full py-3 bg-[#FFF9E8] rounded-2xl text-[#B45309] text-[10px] font-black border border-[#F0E6D2] active:bg-white"
                   >
-                    {isOfflineMode ? '✨ 尝试切回云端模式' : '🔌 强制切换至本地模式'}
+                    {isOfflineMode ? '✨ 尝试开启云端同步' : '🔌 切换至纯本地核心'}
                   </button>
                 </div>
               </div>
@@ -219,16 +223,16 @@ const AIBookkeeping: React.FC = () => {
               <p className="text-[15px] font-bold leading-relaxed whitespace-pre-wrap">{msg.content}</p>
               
               {msg.errorCode && (
-                <div className="mt-2 flex flex-col gap-2">
-                  <div className="flex items-center gap-1 text-[8px] font-mono text-red-400/60 uppercase">
-                    <Info size={8} /> diagnostic: {msg.errorCode.substring(0, 30)}...
+                <div className="mt-3 pt-3 border-t border-red-100 flex flex-col gap-2">
+                  <div className="flex items-center gap-1 text-[8px] font-mono text-red-400/80 italic">
+                    <Info size={8} /> Diagnostic: {msg.errorCode.substring(0, 50)}...
                   </div>
-                  {msg.errorCode.includes('400') && !msg.isConfirmed && (
+                  {msg.errorCode.includes('400') && (
                      <button 
-                      onClick={handleConfigureKey}
-                      className="text-[10px] font-black text-[#FF5C00] bg-[#FFF9E8] px-3 py-1.5 rounded-lg border border-[#F0E6D2] self-start active:scale-95"
+                      onClick={handleFixApiKey}
+                      className="text-[10px] font-black text-white bg-red-500 px-4 py-2 rounded-xl self-start active:scale-95 shadow-sm flex items-center gap-2"
                     >
-                      点击重新授权有效 Key 萝
+                      <RefreshCw size={12} /> 重新授权 API Key 萝
                     </button>
                   )}
                 </div>
@@ -238,9 +242,9 @@ const AIBookkeeping: React.FC = () => {
                 <div className="mt-4 bg-[#FFF9E8]/30 rounded-2xl p-4 border border-[#F0E6D2] space-y-3 shadow-inner text-[#5D3A2F]">
                   <div className="flex justify-between items-center border-b border-[#F0E6D2]/50 pb-2">
                     <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
-                      <ListChecks size={12} /> {msg.brainSource === 'local' ? '本地核心识别' : '智能云端解析'}
+                      <ListChecks size={12} /> {msg.brainSource === 'local' ? '本地内核解析' : '智能云端解析'}
                     </span>
-                    {msg.isConfirmed && <span className="text-[10px] font-black text-green-500 flex items-center gap-1"><CheckCircle size={12} /> 已入账</span>}
+                    {msg.isConfirmed && <span className="text-[10px] font-black text-green-500 flex items-center gap-1"><CheckCircle size={12} /> 已存入</span>}
                   </div>
                   <div className="space-y-2 max-h-48 overflow-y-auto no-scrollbar py-1">
                     {msg.data.map((item: any, idx: number) => (
@@ -251,7 +255,7 @@ const AIBookkeeping: React.FC = () => {
                         </div>
                         <div className="text-right shrink-0">
                           <span className="text-[#FF5C00] font-black text-sm">
-                            {item.amount > 0 ? `¥${Number(item.amount).toFixed(2)}` : '待补录'}
+                            {item.amount > 0 ? `¥${Number(item.amount).toFixed(2)}` : '待录入'}
                           </span>
                         </div>
                       </div>
@@ -262,7 +266,7 @@ const AIBookkeeping: React.FC = () => {
                       onClick={() => handleConfirmBatch(msg.id, msg.data)} 
                       className="w-full py-3.5 bg-[#FF5C00] text-white rounded-xl font-black text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 border-b-4 border-[#E65100]"
                     >
-                      <CheckCircle2 size={14} /> {msg.brainSource === 'local' ? '确认结果无误' : '确认入账'}
+                      <CheckCircle2 size={14} /> 确认入账
                     </button>
                   )}
                 </div>
@@ -275,7 +279,7 @@ const AIBookkeeping: React.FC = () => {
              <div className="bg-white border border-[#F0E6D2] px-6 py-4 rounded-[28px] rounded-tl-none flex items-center gap-3 shadow-sm">
                 <Loader2 size={16} className="text-[#FF5C00] animate-spin" />
                 <span className="text-xs font-black text-[#B45309]/40">
-                  {isOfflineMode ? 'Lulu-Nano 本地推理中...' : '正在连线云端分析图像...'}
+                  {isOfflineMode ? 'Lulu-Nano 本地处理中...' : '正在同步云端大脑...'}
                 </span>
              </div>
           </div>
@@ -294,7 +298,7 @@ const AIBookkeeping: React.FC = () => {
             value={inputText} 
             onChange={(e) => setInputText(e.target.value)} 
             onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
-            placeholder={isOfflineMode ? "本地核心：输入内容或金额..." : "云端模式：可发截图分析..."} 
+            placeholder={isOfflineMode ? "本地记账：输入内容..." : "云端记账：发张截图试试？"} 
             className="flex-1 bg-transparent border-none outline-none font-bold text-[#5D3A2F] text-[15px] py-2" 
           />
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />

@@ -252,14 +252,14 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsAiProcessing(true);
     setLastError(null);
     try {
-      // 关键：每次调用都重新实例化以获取最新的 process.env.API_KEY
+      // 动态读取 API KEY，确保 openSelectKey 后的新 Key 能生效
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = `你是一个专业的财务记账助理萝萝。JSON 格式返回：{ "items": [{ "amount": 数字, "description": "描述", "category": "吃/生活/房租/娱乐", "date": "YYYY-MM-DD" }], "responseText": "反馈" }`;
 
       let result;
       if (imageBase64) {
-        const mimeType = imageBase64.match(/data:([^;]+);/)?.[1] || 'image/jpeg';
         const rawData = imageBase64.split(',')[1];
+        const mimeType = imageBase64.match(/data:([^;]+);/)?.[1] || 'image/jpeg';
         result = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
           contents: { parts: [{ inlineData: { mimeType, data: rawData } }, { text: prompt + `\n用户文字: ${text}` }] },
@@ -282,18 +282,19 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
         brainSource: 'cloud'
       }]);
     } catch (error: any) {
-      console.error("Gemini 连线失败:", error);
-      const errorMsg = error.message || "Unknown Network Error";
+      console.error("Gemini 调用失败:", error);
+      const errorMsg = error.message || JSON.stringify(error) || "Unknown API Error";
       setLastError(errorMsg);
       
       const localRes = luluLocalBrain(text);
       setChatHistory(prev => [...prev, { 
         id: Date.now().toString(), 
         role: 'assistant', 
-        content: `【云端异常】陛下，钥匙好像不对萝（${errorMsg.includes('400') ? 'Key 无效' : '网络受限'}）。萝萝已为您降级到本地核心：` + localRes.responseText, 
+        content: `【云端连接故障】陛下，通行证（API Key）似乎无效萝！(Code: ${errorMsg.includes('400') ? 'API_KEY_INVALID' : 'Connection Limit'})。萝萝已自动切换到本地内核为您处理：\n\n` + localRes.responseText, 
         data: localRes.items,
         brainSource: 'local',
-        errorCode: errorMsg
+        errorCode: errorMsg,
+        image: imageBase64 // 保留图片引用，方便重试
       }]);
     } finally {
       setIsAiProcessing(false);
@@ -310,8 +311,9 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
         config: { responseMimeType: "application/json" }
       });
       setImportedRecipeResult(JSON.parse(result.text));
-    } catch (error) {
+    } catch (error: any) {
       console.error("食谱导入失败:", error);
+      setLastError(error.message);
     } finally {
       setIsAiProcessing(false);
     }
