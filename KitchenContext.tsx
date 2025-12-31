@@ -224,21 +224,31 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsAiProcessing(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `你是一个专业的财务记账助手，名叫"萝萝"。分析输入并提取消费项。
+      const prompt = `你是一个专业的财务记账助手，名叫"萝萝"。
+【任务说明】：
+1. 分析用户输入的文字内容或提供的支付/购物截图（如微信支付详情、支付宝详情、超市小票）。
+2. 从截图或文字中提取所有的消费项目。
+3. 如果是截图，请务必关注：实付金额（Total/Amount）、交易商户/描述、交易日期。
+4. 返回结构化的 JSON 数据。
+
 请务必返回 JSON:
 {
   "items": [
-    { "amount": 数字, "description": "描述", "category": "分类", "date": "YYYY-MM-DD" }
+    { "amount": 数字, "description": "描述", "category": "吃/生活/房租/娱乐", "date": "YYYY-MM-DD" }
   ],
-  "responseText": "口吻活泼的话"
+  "responseText": "口吻活泼的一句话反馈，例如：陛下，萝萝已经帮您把刚才那顿大餐记下来啦！"
 }
 当前日期: ${new Date().toISOString().split('T')[0]}`;
 
       let result;
       if (imageBase64) {
+        // 动态提取 MIME 类型和数据
+        const mimeType = imageBase64.split(';')[0].split(':')[1] || 'image/jpeg';
+        const rawData = imageBase64.split(',')[1];
+        
         result = await ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
-          contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: imageBase64.split(',')[1] } }, { text: prompt + `\n用户输入: ${text}` }] },
+          model: 'gemini-3-pro-preview',
+          contents: { parts: [{ inlineData: { mimeType, data: rawData } }, { text: prompt + `\n用户输入文字: ${text}` }] },
           config: {
             responseMimeType: "application/json",
             responseSchema: {
@@ -253,7 +263,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       } else {
         result = await ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
+          model: 'gemini-3-pro-preview',
           contents: prompt + `\n用户输入: ${text}`,
           config: {
             responseMimeType: "application/json",
@@ -274,13 +284,13 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
         id: Date.now().toString(),
         role: 'assistant',
         content: aiResponse.responseText,
-        data: aiResponse.items.length > 0 ? aiResponse.items : null,
+        data: aiResponse.items && aiResponse.items.length > 0 ? aiResponse.items : null,
         isConfirmed: false
       };
       setChatHistory(prev => [...prev, assistantMsg]);
     } catch (error) {
       console.error("AI记账失败:", error);
-      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: "萝萝刚才走神了，没听清萝..." }]);
+      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: "萝萝刚才眼花了，这张截图看不太清楚，陛下能换一张清晰点或者直接告诉我花了多少吗萝？" }]);
     } finally {
       setIsAiProcessing(false);
     }
