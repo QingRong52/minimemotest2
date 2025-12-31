@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Recipe, ShoppingItem, ExpenseRecord, MealPlan, RecipeFeedback } from './types';
 import { MOCK_RECIPES } from './constants';
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 export interface Category {
   id: string;
@@ -18,7 +18,7 @@ export interface ChatMessage {
   data?: any; 
   isConfirmed?: boolean;
   brainSource?: 'local' | 'cloud';
-  errorCode?: string; // 新增：记录具体的错误代码
+  errorCode?: string;
 }
 
 export interface CategoryBudgets {
@@ -252,6 +252,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsAiProcessing(true);
     setLastError(null);
     try {
+      // 关键：每次调用都重新实例化以获取最新的 process.env.API_KEY
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = `你是一个专业的财务记账助理萝萝。JSON 格式返回：{ "items": [{ "amount": 数字, "description": "描述", "category": "吃/生活/房租/娱乐", "date": "YYYY-MM-DD" }], "responseText": "反馈" }`;
 
@@ -289,7 +290,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setChatHistory(prev => [...prev, { 
         id: Date.now().toString(), 
         role: 'assistant', 
-        content: `【诊断反馈】陛下，云端大脑连接遇到了点麻烦萝（${errorMsg.includes('403') ? '403:节点受限' : '连接超时'}）。萝萝已为您降级到本地核心识别：` + localRes.responseText, 
+        content: `【云端异常】陛下，钥匙好像不对萝（${errorMsg.includes('400') ? 'Key 无效' : '网络受限'}）。萝萝已为您降级到本地核心：` + localRes.responseText, 
         data: localRes.items,
         brainSource: 'local',
         errorCode: errorMsg
