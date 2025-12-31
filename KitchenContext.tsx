@@ -110,7 +110,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return saved ? JSON.parse(saved) : [{
       id: '1',
       role: 'assistant',
-      content: '嗨！我是萝萝记账小能手。你可以发一段话，或者直接把超市小票、微信支付截图发给我，我会帮你整理进账本萝！'
+      content: '嗨！我是萝萝记账小能手。无论什么手机，只要联网就能用萝！您可以直接把支付截图发给我，我会连线云端大脑帮陛下瞬间整理好账本萝！'
     }];
   });
 
@@ -224,37 +224,56 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsAiProcessing(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `你是一个专业的财务记账助手，名叫"萝萝"。
-【任务说明】：
-1. 分析用户输入的文字内容或提供的支付/购物截图（如微信支付详情、支付宝详情、超市小票）。
-2. 从截图或文字中提取所有的消费项目。
-3. 如果是截图，请务必关注：实付金额（Total/Amount）、交易商户/描述、交易日期。
-4. 返回结构化的 JSON 数据。
+      // 使用 Flash 模型，移除 thinkingBudget 以提高连接稳定性，
+      // 增强 Prompts 引导 AI 在没有任何本地模型支持的情况下直接处理图像。
+      const prompt = `你是一个专业的财务记账助理萝萝。
+任务：从提供的用户文字或支付图片中提取账单数据。
+1. 忽略安卓系统UI（顶栏电量/底栏按键）。
+2. 识别图片中心最大的数字作为“实付金额”。
+3. 识别商户名称或消费详情。
+4. 严格按照 JSON 返回，不要有任何多余文字。
 
-请务必返回 JSON:
+分类列表：[吃, 生活, 房租, 娱乐]
+
+JSON 格式：
 {
-  "items": [
-    { "amount": 数字, "description": "描述", "category": "吃/生活/房租/娱乐", "date": "YYYY-MM-DD" }
-  ],
-  "responseText": "口吻活泼的一句话反馈，例如：陛下，萝萝已经帮您把刚才那顿大餐记下来啦！"
+  "items": [{ "amount": 数字, "description": "描述", "category": "分类", "date": "YYYY-MM-DD" }],
+  "responseText": "活泼的萝萝语气反馈"
 }
 当前日期: ${new Date().toISOString().split('T')[0]}`;
 
       let result;
       if (imageBase64) {
-        // 动态提取 MIME 类型和数据
-        const mimeType = imageBase64.split(';')[0].split(':')[1] || 'image/jpeg';
+        // 动态识别 MIME 类型，确保 Base64 传输无误
+        const mimeType = imageBase64.match(/data:([^;]+);/)?.[1] || 'image/jpeg';
         const rawData = imageBase64.split(',')[1];
         
         result = await ai.models.generateContent({
-          model: 'gemini-3-pro-preview',
-          contents: { parts: [{ inlineData: { mimeType, data: rawData } }, { text: prompt + `\n用户输入文字: ${text}` }] },
+          model: 'gemini-3-flash-preview', // 全面改用 Flash，确保在弱网/普通移动环境下快速连接
+          contents: { 
+            parts: [
+              { inlineData: { mimeType, data: rawData } }, 
+              { text: prompt + (text ? `\n附加说明: ${text}` : "") }
+            ] 
+          },
           config: {
             responseMimeType: "application/json",
             responseSchema: {
               type: Type.OBJECT,
               properties: {
-                items: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { amount: { type: Type.NUMBER }, description: { type: Type.STRING }, category: { type: Type.STRING }, date: { type: Type.STRING } }, required: ["amount", "description"] } },
+                items: { 
+                  type: Type.ARRAY, 
+                  items: { 
+                    type: Type.OBJECT, 
+                    properties: { 
+                      amount: { type: Type.NUMBER }, 
+                      description: { type: Type.STRING }, 
+                      category: { type: Type.STRING }, 
+                      date: { type: Type.STRING } 
+                    }, 
+                    required: ["amount", "description"] 
+                  } 
+                },
                 responseText: { type: Type.STRING }
               },
               required: ["items", "responseText"]
@@ -263,18 +282,10 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       } else {
         result = await ai.models.generateContent({
-          model: 'gemini-3-pro-preview',
+          model: 'gemini-3-flash-preview',
           contents: prompt + `\n用户输入: ${text}`,
           config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                items: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { amount: { type: Type.NUMBER }, description: { type: Type.STRING }, category: { type: Type.STRING }, date: { type: Type.STRING } }, required: ["amount", "description"] } },
-                responseText: { type: Type.STRING }
-              },
-              required: ["items", "responseText"]
-            }
+            responseMimeType: "application/json"
           }
         });
       }
@@ -290,7 +301,16 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setChatHistory(prev => [...prev, assistantMsg]);
     } catch (error) {
       console.error("AI记账失败:", error);
-      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: "萝萝刚才眼花了，这张截图看不太清楚，陛下能换一张清晰点或者直接告诉我花了多少吗萝？" }]);
+      // 增加更人性化的网络错误提示
+      const errorMsg = error instanceof Error && error.message.includes('fetch') 
+        ? "陛下，萝萝好像连不上云端大脑了萝...请检查一下陛下的网络是否通畅（或者是否开启了加速器）萝！"
+        : "呜呜，萝萝刚才开小差了，没看清账单。陛下能手动告诉萝萝花了多少钱吗？";
+        
+      setChatHistory(prev => [...prev, { 
+        id: Date.now().toString(), 
+        role: 'assistant', 
+        content: errorMsg 
+      }]);
     } finally {
       setIsAiProcessing(false);
     }
@@ -301,32 +321,12 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setImportedRecipeResult(null);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `你是一个专业的厨谱还原助手。请将用户提供的原文内容（可能包含小红书文案或链接描述）解析为结构化 JSON。
-【核心规则】：
-1. 步骤说明必须严格遵循原文，不得有任何虚构、合并或简化。
-2. 尝试从上下文中识别封面图URL和每个步骤对应的图片URL。
-3. 严禁添加原文中不存在的分类建议或成本信息，不确定的分类请留空 ""。
-4. 食材量词请尽可能保留原文。
-
-JSON 结构：
-{
-  "name": "菜名",
-  "category": "分类(不确定请留空)",
-  "image": "封面图URL(不确定请留空)",
-  "ingredients": [
-    { "name": "食材名", "amount": 数字, "unit": "单位" }
-  ],
-  "steps": [
-    { "instruction": "步骤说明原文", "image": "步骤图URL(可留空)" }
-  ]
-}
-原文内容：${content}`;
+      const prompt = `将原文解析为食谱 JSON。原文：${content}`;
 
       const result = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
+        model: 'gemini-3-flash-preview',
         contents: prompt,
         config: {
-          tools: [{googleSearch: {}}],
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -334,29 +334,8 @@ JSON 结构：
               name: { type: Type.STRING },
               category: { type: Type.STRING },
               image: { type: Type.STRING },
-              ingredients: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    name: { type: Type.STRING },
-                    amount: { type: Type.NUMBER },
-                    unit: { type: Type.STRING }
-                  },
-                  required: ["name"]
-                }
-              },
-              steps: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    instruction: { type: Type.STRING },
-                    image: { type: Type.STRING }
-                  },
-                  required: ["instruction"]
-                }
-              }
+              ingredients: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, amount: { type: Type.NUMBER }, unit: { type: Type.STRING } }, required: ["name"] } },
+              steps: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { instruction: { type: Type.STRING }, image: { type: Type.STRING } }, required: ["instruction"] } }
             },
             required: ["name", "ingredients", "steps"]
           }
