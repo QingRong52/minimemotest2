@@ -17,6 +17,8 @@ export interface ChatMessage {
   image?: string;
   data?: any; 
   isConfirmed?: boolean;
+  brainSource?: 'local' | 'cloud';
+  errorCode?: string; // 新增：记录具体的错误代码
 }
 
 export interface CategoryBudgets {
@@ -47,6 +49,7 @@ interface KitchenContextType {
   categoryBudgets: CategoryBudgets;
   isAiProcessing: boolean;
   isOfflineMode: boolean;
+  lastError: string | null;
   importedRecipeResult: any | null;
   addRecipe: (recipe: Recipe) => void;
   updateRecipe: (recipe: Recipe) => void;
@@ -80,21 +83,40 @@ interface KitchenContextType {
 
 const KitchenContext = createContext<KitchenContextType | undefined>(undefined);
 
-// 本地解析逻辑：在无网络时通过正则提取金额和分类
-const localOfflineParse = (text: string) => {
-  const amountMatch = text.match(/(\d+(\.\d+)?)/);
-  const amount = amountMatch ? parseFloat(amountMatch[0]) : 0;
-  
-  let category = '生活';
-  if (text.match(/吃|饭|菜|肉|喝|水|面|排骨|午餐|晚餐|早餐/)) category = '吃';
-  else if (text.match(/玩|电影|游戏|蹦迪|打球/)) category = '娱乐';
-  else if (text.match(/房租|水电|物业/)) category = '房租';
+const luluLocalBrain = (text: string) => {
+  const matches = text.match(/(\d+(\.\d+)?)/g);
+  let amount = 0;
+  if (matches) {
+    const candidates = matches.map(Number).filter(n => n < 10000 && n > 0);
+    amount = candidates.length > 0 ? candidates[candidates.length - 1] : 0; 
+  }
 
-  let description = text.replace(/(\d+(\.\d+)?)/, '').trim() || "本地记账";
-  
+  const scores = { eat: 0, life: 0, rent: 0, play: 0 };
+  const input = text.toLowerCase();
+  const lexicon = {
+    eat: ['饭', '菜', '面', '肉', '喝', '水', '餐', '超市', '美团', '饿了么', '排骨', '瑞幸', '星巴克', '咖啡', '火锅'],
+    play: ['玩', '游戏', '电影', '网费', '蹦迪', 'ktv', '酒吧', '旅游', '门票'],
+    rent: ['房租', '水电', '物业', '煤气', '房东'],
+    life: ['车', '交通', '油', '充值', '话费', '衣服', '淘宝', '拼多多', '京东', '日用', '理发']
+  };
+
+  Object.entries(lexicon).forEach(([cat, keywords]) => {
+    keywords.forEach(word => {
+      if (input.includes(word)) (scores as any)[cat] += 2;
+    });
+  });
+
+  const bestCategory = (Object.keys(scores) as Array<keyof typeof scores>).reduce((a, b) => scores[a] > scores[b] ? a : b);
+  const categoryMap: Record<string, string> = { eat: '吃', life: '生活', rent: '房租', play: '娱乐' };
+
+  let description = text.replace(/(\d+(\.\d+)?)/g, '').trim();
+  if (!description) description = "本地记账 (" + (amount > 0 ? '金额识别成功' : '手动录入') + ")";
+
   return {
-    items: [{ amount, description, category, date: new Date().toISOString().split('T')[0] }],
-    responseText: "检测到网络未连接萝！萝萝已启动【本地核心】为您快速识别：陛下刚才花了 " + amount + " 元对吗？"
+    items: [{ amount, description, category: categoryMap[bestCategory], date: new Date().toISOString().split('T')[0] }],
+    responseText: amount > 0 
+      ? `【本地内核 Lulu-Nano】已启动萝！陛下是不是刚才花了 ${amount} 元？萝萝已经帮陛下初步整理好分类萝！`
+      : `陛下，本地内核没能从文字里搜寻到金额萝...您手动输入一下，萝萝这就帮您存进本地硬盘！`
   };
 };
 
@@ -129,7 +151,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return saved ? JSON.parse(saved) : [{
       id: '1',
       role: 'assistant',
-      content: '嗨！我是萝萝记账。如果陛下手机没网络，我也能本地识别文字账单萝！试试发“排骨30”给我萝！'
+      content: '陛下好！如果云端大脑连接不畅，萝萝会自动切换到【Lulu-Nano】本地核心为您服务萝！'
     }];
   });
 
@@ -155,6 +177,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
   const [importedRecipeResult, setImportedRecipeResult] = useState<any | null>(null);
 
   useEffect(() => { localStorage.setItem('kitchen_recipes', JSON.stringify(recipes)); }, [recipes]);
@@ -204,21 +227,30 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const setMonthlyBudget = (amount: number) => setBudgetState(amount);
   const setCategoryBudgets = (budgets: CategoryBudgets) => setCategoryBudgetsState(budgets);
   const updateChatHistory = (messages: ChatMessage[]) => setChatHistory(messages);
-  const clearChat = () => setChatHistory([{ id: '1', role: 'assistant', content: '账单已清空萝！' }]);
+  const clearChat = () => setChatHistory([{ id: '1', role: 'assistant', content: '陛下，Lulu-Nano 本地大脑已就位！' }]);
   const setOfflineMode = (offline: boolean) => setIsOfflineMode(offline);
   const addMealPlan = (plan: Omit<MealPlan, 'id'>) => { setMealPlans(prev => [...prev, { ...plan, id: Math.random().toString(36).substr(2, 9) }]); };
   const removeMealPlan = (id: string) => setMealPlans(prev => prev.filter(p => p.id !== id));
   const addFeedback = (feedback: Omit<RecipeFeedback, 'id'>) => { setFeedbacks(prev => [{ ...feedback, id: Math.random().toString(36).substr(2, 9) }, ...prev]); };
 
   const processBookkeeping = async (text: string, imageBase64?: string) => {
-    // 如果是离线模式或只有文字且没网，走本地解析
     if (isOfflineMode || (!imageBase64 && !navigator.onLine)) {
-      const localResult = localOfflineParse(text);
-      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: localResult.responseText, data: localResult.items }]);
+      setIsAiProcessing(true);
+      await new Promise(r => setTimeout(r, 600));
+      const localRes = luluLocalBrain(text);
+      setChatHistory(prev => [...prev, { 
+        id: Date.now().toString(), 
+        role: 'assistant', 
+        content: localRes.responseText, 
+        data: localRes.items,
+        brainSource: 'local'
+      }]);
+      setIsAiProcessing(false);
       return;
     }
 
     setIsAiProcessing(true);
+    setLastError(null);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = `你是一个专业的财务记账助理萝萝。JSON 格式返回：{ "items": [{ "amount": 数字, "description": "描述", "category": "吃/生活/房租/娱乐", "date": "YYYY-MM-DD" }], "responseText": "反馈" }`;
@@ -241,15 +273,26 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       const aiResponse = JSON.parse(result.text);
-      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: aiResponse.responseText, data: aiResponse.items }]);
-    } catch (error) {
-      console.error("AI解析失败，转本地解析:", error);
-      const localResult = localOfflineParse(text);
       setChatHistory(prev => [...prev, { 
         id: Date.now().toString(), 
         role: 'assistant', 
-        content: "哎呀，连不上云端大脑萝，萝萝尝试用【本地离线模式】为您识别萝：" + localResult.responseText, 
-        data: localResult.items 
+        content: aiResponse.responseText, 
+        data: aiResponse.items,
+        brainSource: 'cloud'
+      }]);
+    } catch (error: any) {
+      console.error("Gemini 连线失败:", error);
+      const errorMsg = error.message || "Unknown Network Error";
+      setLastError(errorMsg);
+      
+      const localRes = luluLocalBrain(text);
+      setChatHistory(prev => [...prev, { 
+        id: Date.now().toString(), 
+        role: 'assistant', 
+        content: `【诊断反馈】陛下，云端大脑连接遇到了点麻烦萝（${errorMsg.includes('403') ? '403:节点受限' : '连接超时'}）。萝萝已为您降级到本地核心识别：` + localRes.responseText, 
+        data: localRes.items,
+        brainSource: 'local',
+        errorCode: errorMsg
       }]);
     } finally {
       setIsAiProcessing(false);
@@ -278,7 +321,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
   return (
     <KitchenContext.Provider value={{ 
       recipes, categories, cookingQueue, shoppingList, expenseRecords, chatHistory, mealPlans, feedbacks, monthlyBudget, categoryBudgets,
-      isAiProcessing, isOfflineMode, importedRecipeResult,
+      isAiProcessing, isOfflineMode, lastError, importedRecipeResult,
       addRecipe, updateRecipe, deleteRecipe, addCategory, updateCategory, deleteCategory, reorderCategories,
       addToQueue, removeFromQueue, clearQueue, addToShoppingList, toggleShoppingItem, clearShoppingList,
       addExpense, updateExpense, addExpenses, deleteExpense, setMonthlyBudget, setCategoryBudgets, updateChatHistory, clearChat,
