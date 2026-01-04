@@ -10,7 +10,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { isGlobalModalOpen } = useKitchen();
   
-  // 核心页面白名单 - 移除了 /shopping-list 确保操作流程无干扰
+  // 核心页面白名单 - 移除了 /multi-cooking 和 /shopping-list
   const mainPages = ['/', '/calendar', '/finance'];
   const showNav = mainPages.includes(location.pathname);
 

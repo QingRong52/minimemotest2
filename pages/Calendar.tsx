@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Calendar as CalendarIcon, 
   Trash2, ShoppingCart, X, CheckCircle2,
-  Utensils, Coffee, Pizza, Soup, BookOpen, Plus, Search, ChevronRight
+  Utensils, Coffee, Pizza, Soup, BookOpen, Plus, ChevronRight
 } from 'lucide-react';
 import { useKitchen } from '../KitchenContext';
 import { LuluChef, LuluSearch } from '../components/LuluIcons';
@@ -55,8 +55,8 @@ const Calendar: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
-      {/* Header 层级最高，确保返回按钮可点 */}
-      <header className="px-6 pt-12 pb-4 shrink-0 bg-white/90 backdrop-blur-md border-b border-[#F0E6D2]/30 z-[100] sticky top-0">
+      {/* 核心修复：z-[100] 确保返回和切换按钮在移动端不被内容遮挡 */}
+      <header className="px-6 pt-12 pb-4 shrink-0 bg-white/95 backdrop-blur-md border-b border-[#F0E6D2]/40 z-[100] sticky top-0">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#FF5C00] rounded-2xl flex items-center justify-center text-white shadow-lg">
@@ -98,14 +98,14 @@ const Calendar: React.FC = () => {
         </div>
       </header>
 
+      {/* 列表区域支持平滑滚动 */}
       <div className="flex-1 overflow-y-auto smooth-scroll no-scrollbar px-6 pt-6 pb-40 space-y-10 relative z-10">
         {Object.entries(MEAL_TYPES).map(([type, meta]) => {
-          // 关键修改：使用 filter 获取该时段所有计划，而不是 find
+          // 核心修复：使用 filter 获取该时段所有计划，而不是 find 只取一个
           const currentTypePlans = dayPlans.filter(p => p.mealType === type);
 
           return (
             <div key={type} className="animate-fade-in space-y-4">
-              {/* 时段标签 */}
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-3">
                   <div className={`w-8 h-8 ${meta.bg} ${meta.color} rounded-lg flex items-center justify-center`}>
@@ -113,7 +113,7 @@ const Calendar: React.FC = () => {
                   </div>
                   <h3 className="font-black text-[#5D3A2F] text-[15px]">{meta.label}</h3>
                 </div>
-                {/* 即使有时段内容，也允许继续添加 */}
+                {/* 即使有内容，也允许继续加餐 */}
                 {currentTypePlans.length > 0 && (
                   <button 
                     onClick={() => handleOpenPicker(type)}
@@ -124,7 +124,6 @@ const Calendar: React.FC = () => {
                 )}
               </div>
 
-              {/* 菜品列表 */}
               <div className="space-y-3">
                 {currentTypePlans.length > 0 ? (
                   currentTypePlans.map((plan) => {
@@ -144,7 +143,7 @@ const Calendar: React.FC = () => {
                         <div className="flex-1 min-w-0" onClick={() => navigate(`/recipe/${recipe.id}`)}>
                           <p className="font-black text-[#5D3A2F] text-[15px] truncate pr-2">{recipe.name}</p>
                           <div className="flex items-center gap-1.5 opacity-30 mt-1">
-                            <span className="text-[9px] font-bold uppercase tracking-widest">Recipe Secret</span>
+                            <span className="text-[9px] font-bold uppercase tracking-widest">查看秘籍</span>
                             <ChevronRight size={10} />
                           </div>
                         </div>
@@ -206,12 +205,13 @@ const Calendar: React.FC = () => {
         </div>
       )}
 
+      {/* 底部悬浮购物车 */}
       <div className="fixed bottom-[100px] right-6 z-50">
         <button 
           onClick={() => navigate('/shopping-list')}
-          className="w-12 h-12 rounded-full bg-white border border-[#F0E6D2] text-[#FF5C00] shadow-lg flex items-center justify-center active:scale-90"
+          className="w-14 h-14 rounded-full bg-white border-2 border-[#F0E6D2] text-[#FF5C00] shadow-xl flex items-center justify-center active:scale-90 transition-transform"
         >
-          <ShoppingCart size={20} />
+          <ShoppingCart size={24} />
         </button>
       </div>
     </div>

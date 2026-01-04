@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, ShoppingCart, CheckCircle2, X, Calculator, CreditCard, Check, Loader2, Trash2
@@ -29,7 +29,6 @@ const ShoppingList: React.FC = () => {
     const todayStr = now.toISOString().split('T')[0];
     const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-    // 录入支出到账本
     addExpense({
       date: todayStr,
       time: timeStr,
@@ -50,7 +49,7 @@ const ShoppingList: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden animate-fade-in">
-      {/* Header 层级提升 */}
+      {/* Header 层级提升至 z-[100] */}
       <header className="px-6 pt-12 pb-6 flex items-center justify-between bg-white/95 backdrop-blur-3xl border-b border-[#F0E6D2] z-[100] shrink-0 sticky top-0">
         <div className="flex items-center gap-4">
           <button 
@@ -60,7 +59,7 @@ const ShoppingList: React.FC = () => {
             <ArrowLeft size={24} strokeWidth={3} />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#FF5C00] text-white rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20"><ShoppingCart size={20} /></div>
+            <div className="w-10 h-10 bg-[#FF5C00] text-white rounded-xl flex items-center justify-center shadow-lg"><ShoppingCart size={20} /></div>
             <h2 className="text-[20px] font-black text-[#5D3A2F] tracking-tighter">待购清单</h2>
           </div>
         </div>
@@ -110,7 +109,7 @@ const ShoppingList: React.FC = () => {
                     />
                  </div>
                  {item.checked && (
-                   <div className="bg-green-500 text-white px-5 py-2.5 rounded-2xl flex items-center gap-1.5 animate-scale-up shadow-lg shadow-green-500/20">
+                   <div className="bg-green-500 text-white px-5 py-2.5 rounded-2xl flex items-center gap-1.5 animate-scale-up shadow-lg">
                       <Check size={16} strokeWidth={4} />
                       <span className="text-[12px] font-black uppercase tracking-widest">OK</span>
                    </div>
@@ -127,6 +126,7 @@ const ShoppingList: React.FC = () => {
         )}
       </div>
 
+      {/* 底部合计区域 - 确保在全屏无导航模式下定位正确 */}
       {shoppingList.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 p-8 pb-[calc(env(safe-area-inset-bottom)+24px)] bg-gradient-to-t from-[#FEFFF9] via-[#FEFFF9] to-transparent shrink-0 z-[90] pointer-events-none">
           <div className="bg-white/95 backdrop-blur-3xl rounded-[44px] border border-[#F0E6D2] p-8 shadow-[0_20px_50px_rgba(180,83,9,0.12)] flex flex-col gap-6 animate-slide-up pointer-events-auto">
@@ -148,7 +148,7 @@ const ShoppingList: React.FC = () => {
              <button 
               onClick={handleFinishPurchase}
               disabled={isFinishing || checkedItems.length === 0}
-              className="w-full bg-[#FF5C00] text-white py-6 rounded-[30px] font-black text-[20px] shadow-[0_12px_30px_rgba(255,92,0,0.25)] border-b-8 border-[#E65100] active:scale-95 disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-4"
+              className="w-full bg-[#FF5C00] text-white py-6 rounded-[30px] font-black text-[20px] shadow-xl border-b-8 border-[#E65100] active:scale-95 disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-4"
              >
                {isFinishing ? (
                  <>
