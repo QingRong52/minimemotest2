@@ -64,7 +64,6 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
   const ModalPortal = () => {
     if (!showConfirm) return null;
     
-    // 使用 Portal 将弹窗渲染到 body 最顶层，彻底解决 fixed 失效和遮罩偏移
     return createPortal(
       <div 
         className="fixed inset-0 w-screen h-screen z-[99999] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-6 animate-fade-in"
@@ -121,12 +120,13 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
           showConfirm ? '' : 'transition-all active:scale-[0.99]'
         } ${isAnimating ? 'scale-[0.97] bg-[#FF9A2E]/5 ring-2 ring-[#FF9A2E]/20' : ''}`}
       >
+        {/* 核心修改：w-6 h-6, 进一步减小尺寸以满足移动端精致感 */}
         <button 
           type="button"
           onClick={handleDeleteClick}
-          className="absolute -top-1.5 -right-1.5 w-9 h-9 bg-white rounded-full flex items-center justify-center text-[#B45309]/20 active:text-red-500 transition-all z-[10] border border-[#F0E6D2] shadow-sm"
+          className="absolute -top-1 -right-1 w-6 h-6 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center text-[#B45309]/40 active:text-red-500 transition-all z-[10] border border-[#F0E6D2] shadow-sm active:scale-90"
         >
-          <X size={16} strokeWidth={3} />
+          <X size={12} strokeWidth={3} />
         </button>
 
         <Link 

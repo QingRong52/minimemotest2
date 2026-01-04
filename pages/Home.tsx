@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
 import FloatingPot from '../components/FloatingPot';
@@ -17,7 +17,7 @@ const ICON_OPTIONS = [
 ];
 
 const Home: React.FC = () => {
-  const { recipes, categories, addCategory, updateCategory, deleteCategory, reorderCategories } = useKitchen();
+  const { recipes, categories, addCategory, updateCategory, deleteCategory, reorderCategories, setIsGlobalModalOpen } = useKitchen();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('全部');
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
@@ -25,6 +25,12 @@ const Home: React.FC = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [newCatLabel, setNewCatLabel] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('Utensils');
+
+  // 核心修改：同步分类管理器的打开状态到全局弹窗 Context，控制底部栏隐藏
+  useEffect(() => {
+    setIsGlobalModalOpen(isCategoryManagerOpen);
+    return () => setIsGlobalModalOpen(false);
+  }, [isCategoryManagerOpen, setIsGlobalModalOpen]);
 
   const filteredRecipes = selectedCategory === '全部' 
     ? recipes 

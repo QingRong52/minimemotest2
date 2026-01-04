@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Camera, ListPlus, Loader2, Info } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Camera, ListPlus, Loader2, Info, X } from 'lucide-react';
 import { useKitchen } from '../KitchenContext';
 import { Recipe } from '../types';
 
@@ -178,38 +178,55 @@ const AddRecipe: React.FC = () => {
           </div>
         </div>
 
-        <div className="space-y-5">
+        {/* 食材配比：改为两列并排布局 */}
+        <div className="space-y-4">
           <div className="flex justify-between items-center px-1">
             <label className="text-xs font-black text-[#B45309]/40 uppercase tracking-widest">食材配比</label>
-            <button onClick={addIngredient} className="text-[#FF5C00] font-black text-xs flex items-center gap-1 bg-[#FFF9E8] px-3 py-1.5 rounded-full border border-[#F0E6D2] shadow-sm"><ListPlus size={14} /> 添加食材</button>
+            <button onClick={addIngredient} className="text-[#FF5C00] font-black text-xs flex items-center gap-1 bg-[#FFF9E8] px-3 py-1.5 rounded-full border border-[#F0E6D2] shadow-sm active:scale-95 transition-all"><ListPlus size={14} /> 添加食材</button>
           </div>
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             {ingredients.map((ing, idx) => (
-              <div key={idx} className="bg-white border border-[#F0E6D2] p-5 rounded-[22px] shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <input type="text" placeholder="食材名" className="flex-1 bg-[#FFF9E8]/50 border-none px-4 py-3 rounded-xl font-black text-[#5D3A2F] text-sm outline-none" value={ing.name} onChange={e => updateIngredientField(idx, 'name', e.target.value)} />
-                  <button onClick={() => setIngredients(ingredients.filter((_, i) => i !== idx))} className="w-10 h-10 rounded-xl bg-red-50 text-red-400 flex items-center justify-center shrink-0 active:scale-90"><Trash2 size={16} /></button>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 flex items-center bg-[#F0E6D2]/20 rounded-xl px-3">
-                    <input type="number" placeholder="分量" className="w-full bg-transparent border-none font-black text-[#5D3A2F] text-sm outline-none text-right py-2" value={ing.amount} onChange={e => updateIngredientField(idx, 'amount', Number(e.target.value))} />
-                    <div className="flex items-center ml-2 border-l border-[#F0E6D2] pl-2">
-                       <input 
-                        type="text" 
-                        list="units" 
-                        value={ing.unit} 
-                        placeholder="单位"
-                        onChange={e => updateIngredientField(idx, 'unit', e.target.value)} 
-                        className="bg-transparent font-black text-[10px] text-[#B45309] w-12 outline-none"
-                       />
-                       <datalist id="units">
-                          {UNITS_SUGGESTIONS.map(u => <option key={u} value={u} />)}
-                       </datalist>
-                    </div>
-                  </div>
+              <div key={idx} className="flex flex-col gap-2 bg-white border border-[#F0E6D2] p-3 rounded-[20px] shadow-sm animate-fade-in relative group">
+                {/* 悬浮删除按钮 */}
+                <button 
+                  onClick={() => setIngredients(ingredients.filter((_, i) => i !== idx))} 
+                  className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md active:scale-90 transition-all z-10 opacity-0 group-hover:opacity-100 sm:opacity-100"
+                >
+                  <X size={12} strokeWidth={3} />
+                </button>
+
+                <input 
+                  type="text" 
+                  placeholder="食材名" 
+                  className="w-full bg-[#FFF9E8]/30 border-none px-3 py-2 rounded-xl font-black text-[#5D3A2F] text-[12px] outline-none" 
+                  value={ing.name} 
+                  onChange={e => updateIngredientField(idx, 'name', e.target.value)} 
+                />
+                
+                <div className="flex items-center gap-1 bg-[#F0E6D2]/20 rounded-xl px-2">
+                  <input 
+                    type="number" 
+                    placeholder="数" 
+                    className="w-full bg-transparent border-none font-black text-[#5D3A2F] text-[12px] outline-none text-right py-2" 
+                    value={ing.amount} 
+                    onChange={e => updateIngredientField(idx, 'amount', Number(e.target.value))} 
+                  />
+                  <div className="h-4 w-[1px] bg-[#F0E6D2] mx-1"></div>
+                  <select 
+                    value={ing.unit} 
+                    onChange={e => updateIngredientField(idx, 'unit', e.target.value)} 
+                    className="bg-transparent font-black text-[10px] text-[#FF5C00] outline-none py-2"
+                  >
+                    {UNITS_SUGGESTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
                 </div>
               </div>
             ))}
+            {ingredients.length === 0 && (
+              <div className="col-span-2 py-8 text-center border-2 border-dashed border-[#F0E6D2] rounded-2xl opacity-30 bg-[#FFF9E8]/10">
+                <span className="text-[11px] font-black text-[#B45309]">陛下点点上方按钮，开列御膳食材箩</span>
+              </div>
+            )}
           </div>
         </div>
 
