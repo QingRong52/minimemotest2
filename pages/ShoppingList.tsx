@@ -1,22 +1,20 @@
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, ShoppingCart, CheckCircle2, X, Calculator, CreditCard, Check, Loader2, Trash2
+  ArrowLeft, ShoppingCart, CheckCircle2, X, ListChecks, Check, Loader2, Trash2, PartyPopper
 } from 'lucide-react';
 import { useKitchen } from '../KitchenContext';
-import { LuluCart } from '../components/LuluIcons';
+import { LuluCart, LuluChef } from '../components/LuluIcons';
 
 const ShoppingList: React.FC = () => {
   const navigate = useNavigate();
-  const { shoppingList, toggleShoppingItem, updateShoppingItem, clearShoppingList, addExpense } = useKitchen();
+  const { shoppingList, toggleShoppingItem, clearShoppingList } = useKitchen();
   const [isFinishing, setIsFinishing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // 计算已选总价
+  // 仅获取已勾选的项目
   const checkedItems = useMemo(() => shoppingList.filter(item => item.checked), [shoppingList]);
-  const totalAmount = useMemo(() => {
-    return checkedItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
-  }, [checkedItems]);
 
   const handleFinishPurchase = () => {
     if (checkedItems.length === 0) {
@@ -25,31 +23,17 @@ const ShoppingList: React.FC = () => {
     }
 
     setIsFinishing(true);
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-    addExpense({
-      date: todayStr,
-      time: timeStr,
-      amount: totalAmount,
-      type: 'purchase',
-      description: `清单结算: ${checkedItems.map(i => i.name).join('、')}`,
-      category: 'eat',
-      icon: 'ShoppingCart'
-    });
-
+    
+    // 模拟确认过程，不再进行记账结算，直接进入庆祝环节
     setTimeout(() => {
-      clearShoppingList();
       setIsFinishing(false);
-      alert(`结算成功！¥${totalAmount.toFixed(2)} 已记入“吃”分类账本萝！`);
-      navigate('/finance');
-    }, 800);
+      setShowSuccess(true);
+      clearShoppingList();
+    }, 1000);
   };
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden animate-fade-in">
-      {/* Header 层级提升至 z-[100] */}
       <header className="px-6 pt-12 pb-6 flex items-center justify-between bg-white/95 backdrop-blur-3xl border-b border-[#F0E6D2] z-[100] shrink-0 sticky top-0">
         <div className="flex items-center gap-4">
           <button 
@@ -71,50 +55,33 @@ const ShoppingList: React.FC = () => {
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto smooth-scroll no-scrollbar p-6 pb-96 space-y-5 relative z-10">
+      <div className="flex-1 overflow-y-auto smooth-scroll no-scrollbar p-6 pb-96 space-y-4 relative z-10">
         {shoppingList.length > 0 ? (
           shoppingList.map((item) => (
             <div 
               key={item.id}
-              className={`w-full p-6 rounded-[32px] border-2 transition-all flex flex-col gap-5 ${
-                item.checked ? 'border-green-500/40 bg-green-50/40' : 'bg-white border-[#F0E6D2]'
+              onClick={() => toggleShoppingItem(item.id)}
+              className={`w-full p-6 rounded-[24px] border-2 transition-all flex items-center justify-between cursor-pointer active:scale-[0.98] ${
+                item.checked ? 'border-green-500/40 bg-green-50/40 shadow-inner' : 'bg-white border-[#F0E6D2] shadow-sm'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <button 
-                  onClick={() => toggleShoppingItem(item.id)} 
-                  className="flex items-center gap-5 flex-1 text-left group"
-                >
-                  <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
-                    item.checked ? 'bg-green-500 border-green-500 text-white shadow-md shadow-green-500/10' : 'border-[#F0E6D2] text-transparent'
-                  }`}>
-                    <CheckCircle2 size={20} strokeWidth={3} />
-                  </div>
-                  <span className={`font-black text-[19px] truncate ${item.checked ? 'text-green-700 line-through opacity-40' : 'text-[#5D3A2F]'}`}>
-                    {item.name}
-                  </span>
-                </button>
+              <div className="flex items-center gap-5 flex-1 min-w-0">
+                <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
+                  item.checked ? 'bg-green-500 border-green-500 text-white shadow-md shadow-green-500/10' : 'border-[#F0E6D2] text-transparent'
+                }`}>
+                  <CheckCircle2 size={20} strokeWidth={3} />
+                </div>
+                <span className={`font-black text-[19px] truncate ${item.checked ? 'text-green-700 line-through opacity-40' : 'text-[#5D3A2F]'}`}>
+                  {item.name}
+                </span>
               </div>
-
-              <div className="flex items-center gap-4">
-                 <div className={`flex-1 flex items-center bg-white/70 border-2 rounded-2xl px-5 py-3.5 transition-all focus-within:ring-4 focus-within:ring-[#FF5C00]/10 ${item.checked ? 'border-green-200' : 'border-[#F0E6D2]'}`}>
-                    <span className="text-[16px] font-black text-[#B45309]/30 mr-2">¥</span>
-                    <input 
-                      type="number" 
-                      inputMode="decimal"
-                      placeholder="录入真实价格..." 
-                      value={item.price || ''}
-                      onChange={(e) => updateShoppingItem(item.id, { price: Number(e.target.value) })}
-                      className="w-full bg-transparent outline-none font-black text-[#FF5C00] text-[18px]"
-                    />
-                 </div>
-                 {item.checked && (
-                   <div className="bg-green-500 text-white px-5 py-2.5 rounded-2xl flex items-center gap-1.5 animate-scale-up shadow-lg">
-                      <Check size={16} strokeWidth={4} />
-                      <span className="text-[12px] font-black uppercase tracking-widest">OK</span>
-                   </div>
-                 )}
-              </div>
+              
+              {item.checked && (
+                <div className="bg-green-500 text-white px-4 py-2 rounded-xl flex items-center gap-1.5 animate-scale-up shadow-lg">
+                  <Check size={14} strokeWidth={4} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">OK</span>
+                </div>
+              )}
             </div>
           ))
         ) : (
@@ -126,39 +93,36 @@ const ShoppingList: React.FC = () => {
         )}
       </div>
 
-      {/* 底部合计区域 - 确保在全屏无导航模式下定位正确 */}
+      {/* 底部确认按钮 */}
       {shoppingList.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 p-8 pb-[calc(env(safe-area-inset-bottom)+24px)] bg-gradient-to-t from-[#FEFFF9] via-[#FEFFF9] to-transparent shrink-0 z-[90] pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-3xl rounded-[44px] border border-[#F0E6D2] p-8 shadow-[0_20px_50px_rgba(180,83,9,0.12)] flex flex-col gap-6 animate-slide-up pointer-events-auto">
-             <div className="flex justify-between items-center px-2">
-                <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 bg-green-50 rounded-[22px] flex items-center justify-center text-green-500 shadow-inner">
-                     <Calculator size={26} />
-                   </div>
-                   <div className="flex flex-col">
-                      <span className="text-sm font-black text-[#5D3A2F]">勾选合计</span>
-                      <span className="text-[11px] font-bold text-[#B45309]/30 uppercase tracking-widest leading-none mt-1">Ready to Bill</span>
-                   </div>
+          <div className="bg-white/95 backdrop-blur-3xl rounded-[24px] border border-[#F0E6D2] p-6 shadow-[0_20px_50px_rgba(180,83,9,0.12)] flex flex-col gap-4 animate-slide-up pointer-events-auto">
+             <div className="flex items-center gap-4 px-2">
+                <div className="w-10 h-10 bg-green-50 rounded-[14px] flex items-center justify-center text-green-500">
+                  <ListChecks size={22} />
                 </div>
-                <div className="text-right">
-                  <span className="text-4xl font-black text-[#FF5C00] tracking-tighter">¥ {totalAmount.toFixed(2)}</span>
+                <div className="flex flex-col">
+                   <span className="text-sm font-black text-[#5D3A2F]">采购进度</span>
+                   <span className="text-[10px] font-bold text-[#B45309]/30 uppercase tracking-widest leading-none mt-1">
+                     {checkedItems.length} / {shoppingList.length} 项已购
+                   </span>
                 </div>
              </div>
              
              <button 
               onClick={handleFinishPurchase}
               disabled={isFinishing || checkedItems.length === 0}
-              className="w-full bg-[#FF5C00] text-white py-6 rounded-[30px] font-black text-[20px] shadow-xl border-b-8 border-[#E65100] active:scale-95 disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-4"
+              className="w-full bg-[#FF5C00] text-white py-5 rounded-[22px] font-black text-[18px] shadow-xl border-b-6 border-[#E65100] active:scale-95 disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-3"
              >
                {isFinishing ? (
                  <>
-                   <Loader2 size={28} className="animate-spin" />
-                   <span>正在入库结算...</span>
+                   <Loader2 size={24} className="animate-spin" />
+                   <span>正在确认宝贝...</span>
                  </>
                ) : (
                  <>
-                   <CreditCard size={28} />
-                   <span>这就去买单 ({checkedItems.length}件)</span>
+                   <CheckCircle2 size={24} />
+                   <span>朕已买齐</span>
                  </>
                )}
              </button>
@@ -166,10 +130,37 @@ const ShoppingList: React.FC = () => {
         </div>
       )}
 
+      {/* 成功庆祝动画弹窗 */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-[2000] bg-black/80 backdrop-blur-xl flex items-center justify-center p-8 animate-fade-in">
+          <div className="bg-white rounded-[32px] w-full max-w-[340px] p-10 flex flex-col items-center text-center shadow-2xl animate-modal-pop" onClick={e => e.stopPropagation()}>
+            <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-8 relative">
+              <PartyPopper size={48} className="text-green-500" />
+              <div className="absolute inset-0 animate-ping bg-green-500/20 rounded-full"></div>
+            </div>
+            
+            <h3 className="text-2xl font-black text-[#5D3A2F] mb-4 tracking-tighter">粮草已齐萝！</h3>
+            <p className="text-[15px] font-bold text-[#B45309]/50 mb-10 leading-relaxed px-2">
+              陛下大功告成！<br/>
+              新鲜食材已就位，期待陛下的美味杰作萝～
+            </p>
+            
+            <button 
+              onClick={() => navigate('/')}
+              className="w-full py-5 bg-[#FF5C00] text-white rounded-[24px] font-black text-lg shadow-xl border-b-6 border-[#E65100] active:scale-95 transition-all"
+            >
+              回书架翻翻看
+            </button>
+          </div>
+        </div>
+      )}
+
       <style>{`
-        .border-b-8 { border-bottom-width: 8px; }
+        .border-b-6 { border-bottom-width: 6px; }
         @keyframes scale-up { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .animate-scale-up { animation: scale-up 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        @keyframes modal-pop { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        .animate-modal-pop { animation: modal-pop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.28) forwards; }
       `}</style>
     </div>
   );

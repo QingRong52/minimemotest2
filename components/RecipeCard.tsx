@@ -16,7 +16,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // 弹窗开启时锁定滚动并同步全局状态，强制关闭底部栏显示
+  // 弹窗开启时锁定滚动并同步全局状态
   useEffect(() => {
     if (showConfirm) {
       document.body.style.overflow = 'hidden';
@@ -71,7 +71,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
         onClick={cancelDelete}
       >
         <div 
-          className="bg-[#FEFFF9] rounded-[44px] w-full max-w-[340px] p-10 shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/20 relative flex flex-col items-center animate-modal-pop"
+          className="bg-[#FEFFF9] rounded-[24px] w-full max-w-[340px] p-10 shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/20 relative flex flex-col items-center animate-modal-pop"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative mb-8">
@@ -94,14 +94,14 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
           <div className="flex flex-col gap-4 w-full">
             <button 
               onClick={cancelDelete} 
-              className="w-full py-5 bg-[#FF5C00] text-white rounded-[32px] font-black text-[18px] shadow-[0_12px_30px_rgba(255,92,0,0.4)] active:scale-[0.96] transition-all flex items-center justify-center gap-2 border-b-6 border-[#E65100]"
+              className="w-full py-5 bg-[#FF5C00] text-white rounded-[20px] font-black text-[18px] shadow-[0_12px_30px_rgba(255,92,0,0.4)] active:scale-[0.96] transition-all flex items-center justify-center gap-2 border-b-6 border-[#E65100]"
             >
               <Heart size={22} fill="white" /> 还是留着萝
             </button>
             
             <button 
               onClick={confirmDelete} 
-              className="w-full py-4 text-[#B45309]/30 rounded-[32px] font-black text-[15px] active:text-red-500 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-4 text-[#B45309]/30 rounded-[20px] font-black text-[15px] active:text-red-500 transition-colors flex items-center justify-center gap-2"
             >
               <Trash2 size={16} />
               <span>残忍丢弃</span>
@@ -120,7 +120,6 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
           showConfirm ? '' : 'transition-all active:scale-[0.99]'
         } ${isAnimating ? 'scale-[0.97] bg-[#FF9A2E]/5 ring-2 ring-[#FF9A2E]/20' : ''}`}
       >
-        {/* 核心修改：w-6 h-6, 进一步减小尺寸以满足移动端精致感 */}
         <button 
           type="button"
           onClick={handleDeleteClick}

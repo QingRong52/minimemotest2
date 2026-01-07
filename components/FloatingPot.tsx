@@ -48,7 +48,7 @@ const FloatingPot: React.FC = () => {
         onClick={() => setIsOpen(false)}
       >
         <div 
-          className="bg-[#FEFFF9] w-full h-[88%] rounded-t-[44px] p-8 animate-slide-up flex flex-col shadow-[0_-20px_80px_rgba(0,0,0,0.4)] border-t border-white/40"
+          className="bg-[#FEFFF9] w-full h-[88%] rounded-t-[24px] p-8 animate-slide-up flex flex-col shadow-[0_-20px_80px_rgba(0,0,0,0.4)] border-t border-white/40"
           style={{ maxWidth: '430px' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -117,7 +117,7 @@ const FloatingPot: React.FC = () => {
             <div className="pt-8 pb-10 px-2 shrink-0">
               <button 
                 onClick={handleStartMultiCooking}
-                className="w-full h-18 bg-[#FF5C00] text-white rounded-[28px] font-black text-xl shadow-[0_15px_30px_rgba(255,92,0,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-4 border-b-6 border-[#E65100]"
+                className="w-full h-18 bg-[#FF5C00] text-white rounded-[24px] font-black text-xl shadow-[0_15px_30px_rgba(255,92,0,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-4 border-b-6 border-[#E65100]"
               >
                 <Play size={28} fill="currentColor" strokeWidth={3} />
                 <span>开启合制模式（共{queueItems.length}道）</span>

@@ -4,6 +4,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Calendar from './pages/Calendar';
+import Inventory from './pages/Inventory';
 import Finance from './pages/Finance';
 import RecipeDetail from './pages/RecipeDetail';
 import AddRecipe from './pages/AddRecipe';
@@ -23,6 +24,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/calendar" element={<Calendar />} />
+            <Route path="/inventory" element={<Inventory />} />
             <Route path="/finance" element={<Finance />} />
             <Route path="/recipe/:id" element={<RecipeDetail />} />
             <Route path="/add-recipe" element={<AddRecipe />} />

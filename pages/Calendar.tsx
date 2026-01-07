@@ -13,7 +13,6 @@ const MEAL_TYPES = {
   breakfast: { label: '晨起', icon: Coffee, color: 'text-orange-400', bg: 'bg-orange-50' },
   lunch: { label: '午膳', icon: Utensils, color: 'text-blue-400', bg: 'bg-blue-50' },
   dinner: { label: '晚宴', icon: Pizza, color: 'text-purple-400', bg: 'bg-purple-50' },
-  snack: { label: '茶点', icon: Soup, color: 'text-green-400', bg: 'bg-green-50' },
 };
 
 const Calendar: React.FC = () => {
@@ -55,7 +54,6 @@ const Calendar: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-[#FEFFF9] relative overflow-hidden">
-      {/* 核心修复：z-[100] 确保返回和切换按钮在移动端不被内容遮挡 */}
       <header className="px-6 pt-12 pb-4 shrink-0 bg-white/95 backdrop-blur-md border-b border-[#F0E6D2]/40 z-[100] sticky top-0">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -98,10 +96,8 @@ const Calendar: React.FC = () => {
         </div>
       </header>
 
-      {/* 列表区域支持平滑滚动 */}
       <div className="flex-1 overflow-y-auto smooth-scroll no-scrollbar px-6 pt-6 pb-40 space-y-10 relative z-10">
         {Object.entries(MEAL_TYPES).map(([type, meta]) => {
-          // 核心修复：使用 filter 获取该时段所有计划，而不是 find 只取一个
           const currentTypePlans = dayPlans.filter(p => p.mealType === type);
 
           return (
@@ -113,7 +109,6 @@ const Calendar: React.FC = () => {
                   </div>
                   <h3 className="font-black text-[#5D3A2F] text-[15px]">{meta.label}</h3>
                 </div>
-                {/* 即使有内容，也允许继续加餐 */}
                 {currentTypePlans.length > 0 && (
                   <button 
                     onClick={() => handleOpenPicker(type)}
@@ -205,7 +200,6 @@ const Calendar: React.FC = () => {
         </div>
       )}
 
-      {/* 底部悬浮购物车 */}
       <div className="fixed bottom-[100px] right-6 z-50">
         <button 
           onClick={() => navigate('/shopping-list')}

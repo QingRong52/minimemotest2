@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Camera, Send, X, Star, Smile, Heart, ThumbsUp } from 'lucide-react';
+import { ArrowLeft, Camera, Send, X, Star, Smile, Heart, ThumbsUp, CheckCircle } from 'lucide-react';
 import { useKitchen } from '../KitchenContext';
 
 const RATINGS = [
@@ -19,6 +19,7 @@ const AddFeedback: React.FC = () => {
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
   const [image, setImage] = useState<string | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const recipe = recipes.find(r => r.id === id);
@@ -35,7 +36,12 @@ const AddFeedback: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    if (!content.trim()) return alert('请输入心得萝～');
+    if (!content.trim()) return alert('陛下，还没写心得萝～');
+    if (isPublishing) return;
+
+    setIsPublishing(true);
+    
+    // 逻辑处理
     addFeedback({
       recipeId: recipe.id,
       date: new Date().toISOString().split('T')[0],
@@ -43,7 +49,11 @@ const AddFeedback: React.FC = () => {
       content,
       image: image || undefined
     });
-    navigate(`/recipe/${id}`);
+
+    // 视觉反馈后跳转
+    setTimeout(() => {
+      navigate(`/recipe/${id}`);
+    }, 600);
   };
 
   return (
@@ -55,7 +65,7 @@ const AddFeedback: React.FC = () => {
         <h2 className="text-[18px] font-black text-[#5D3A2F]">记一份御批</h2>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-8 pb-32">
+      <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-8 pb-48">
         {/* 菜品摘要 */}
         <div className="flex items-center gap-4 bg-white p-4 rounded-[22px] border border-[#F0E6D2] shadow-sm">
           <img src={recipe.image} className="w-16 h-16 rounded-2xl object-cover" alt="" />
@@ -115,14 +125,21 @@ const AddFeedback: React.FC = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-6 right-6">
+      {/* 修正：增加容器层级并确保位置固定，避免由于滚动层级导致的点击失效 */}
+      <div className="absolute bottom-8 left-6 right-6 z-50">
         <button 
           onClick={handleSubmit}
-          className="w-full bg-[#FF5C00] text-white py-5 rounded-[22px] font-black text-lg shadow-xl border-b-6 border-[#E65100] active:scale-95 flex items-center justify-center gap-3"
+          disabled={isPublishing}
+          className={`w-full bg-[#FF5C00] text-white py-5 rounded-[22px] font-black text-lg shadow-xl border-b-6 border-[#E65100] active:scale-95 flex items-center justify-center gap-3 transition-all ${isPublishing ? 'opacity-70' : ''}`}
         >
-          <Send size={20} /> 发布心得萝
+          {isPublishing ? <CheckCircle className="animate-pulse" size={20} /> : <Send size={20} />}
+          {isPublishing ? '发布中...' : '发布心得萝'}
         </button>
       </div>
+
+      <style>{`
+        .border-b-6 { border-bottom-width: 6px; }
+      `}</style>
     </div>
   );
 };

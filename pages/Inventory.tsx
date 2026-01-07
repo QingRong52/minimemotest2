@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ShoppingCart, Sparkles, Utensils, X, Trash2, ChefHat, CheckCircle2, PackagePlus, Sandwich, Check, Plus, ArrowLeft, Edit3
 } from 'lucide-react';
@@ -15,7 +15,7 @@ const INGREDIENT_ICONS = ['Beef', 'Fish', 'Apple', 'Pizza', 'Sandwich', 'Soup', 
 const SEASONING_ICONS = ['Flame', 'Droplets', 'Leaf', 'Wheat', 'Wine', 'Milk', 'Zap', 'Coffee', 'Container', 'Package'];
 
 const Inventory: React.FC = () => {
-  const { ingredients, recipes, addIngredient, removeIngredient, shoppingList, clearShoppingList, toggleShoppingItem, addBoughtToInventory, addExpense } = useKitchen();
+  const { ingredients, recipes, addIngredient, removeIngredient, shoppingList, clearShoppingList, toggleShoppingItem, addBoughtToInventory, addExpense, setIsGlobalModalOpen } = useKitchen();
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -30,12 +30,18 @@ const Inventory: React.FC = () => {
   const [newIcon, setNewIcon] = useState('Utensils');
   const [newCategory, setNewCategory] = useState<'食材' | '调料'>('食材');
 
+  // 同步全局弹窗状态
+  useEffect(() => {
+    setIsGlobalModalOpen(isAddModalOpen || isCartOpen || isInventoryCheckOpen || isMagicMatchOpen);
+    return () => setIsGlobalModalOpen(false);
+  }, [isAddModalOpen, isCartOpen, isInventoryCheckOpen, isMagicMatchOpen, setIsGlobalModalOpen]);
+
   const matchedRecipes = useMemo(() => {
     return recipes.filter(recipe => {
       if (recipe.ingredients.length === 0) return false;
       return recipe.ingredients.every(ri => {
         const stock = ingredients.find(i => i.id === ri.ingredientId || i.name === ri.name);
-        return stock && (stock.quantity ?? 0) >= ri.amount;
+        return stock && (Number(stock.quantity) || 0) >= ri.amount;
       });
     });
   }, [recipes, ingredients]);
@@ -302,7 +308,7 @@ const Inventory: React.FC = () => {
               ))}
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FEFFF9] to-transparent">
-              <button onClick={handleConfirmBulkAdd} className="w-full h-16 bg-[#FF5C00] text-white py-5 rounded-[22px] font-black text-lg shadow-xl active:scale-[0.98] transition-all border-b-4 border-[#E65100]">确认批量入库</button>
+              <button onClick={handleConfirmBulkAdd} className="w-full h-16 bg-[#FF5C00] text-white py-5 rounded-[22px] font-black text-lg shadow-xl active:scale-98 transition-all border-b-4 border-[#E65100]">确认批量入库</button>
             </div>
           </div>
         </div>

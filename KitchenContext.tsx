@@ -36,6 +36,8 @@ const DEFAULT_CATEGORIES: Category[] = [
   { id: '精致晚餐', label: '美味主食', icon: 'Pizza' },
 ];
 
+const DEFAULT_CAT_BUDGETS: CategoryBudgets = { eat: 1000, life: 500, rent: 0, play: 500 };
+
 interface KitchenContextType {
   recipes: Recipe[];
   categories: Category[];
@@ -49,7 +51,7 @@ interface KitchenContextType {
   categoryBudgets: CategoryBudgets;
   isAiProcessing: boolean;
   isOfflineMode: boolean;
-  isGlobalModalOpen: boolean; // 新增：全局弹窗状态
+  isGlobalModalOpen: boolean; 
   lastError: string | null;
   importedRecipeResult: any | null;
   addRecipe: (recipe: Recipe) => void;
@@ -75,7 +77,7 @@ interface KitchenContextType {
   updateChatHistory: (messages: ChatMessage[]) => void;
   clearChat: () => void;
   setOfflineMode: (offline: boolean) => void;
-  setIsGlobalModalOpen: (isOpen: boolean) => void; // 新增：设置全局弹窗状态
+  setIsGlobalModalOpen: (isOpen: boolean) => void; 
   addMealPlan: (plan: Omit<MealPlan, 'id'>) => void;
   removeMealPlan: (id: string) => void;
   addFeedback: (feedback: Omit<RecipeFeedback, 'id'>) => void;
@@ -170,12 +172,18 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [monthlyBudget, setBudgetState] = useState<number>(() => {
     const saved = localStorage.getItem('kitchen_budget');
-    return saved ? Number(saved) : 2000;
+    return saved ? (Number(saved) || 2000) : 2000;
   });
 
   const [categoryBudgets, setCategoryBudgetsState] = useState<CategoryBudgets>(() => {
     const saved = localStorage.getItem('kitchen_category_budgets');
-    return saved ? JSON.parse(saved) : { eat: 1000, life: 500, rent: 0, play: 500 };
+    try {
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...DEFAULT_CAT_BUDGETS, ...parsed };
+      }
+    } catch (e) { console.error("Parse budget error", e); }
+    return DEFAULT_CAT_BUDGETS;
   });
 
   const [isAiProcessing, setIsAiProcessing] = useState(false);
@@ -238,6 +246,7 @@ export const KitchenProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
   const addExpenses = (records: Omit<ExpenseRecord, 'id'>[]) => {
     const newRecords: ExpenseRecord[] = records.map(record => ({ ...record, id: Math.random().toString(36).substr(2, 9) }));
+    /* Corrected: Use spread operator to append newRecords to expenseRecords array */
     setExpenseRecords(prev => [...prev, ...newRecords]);
   };
   const deleteExpense = (id: string) => setExpenseRecords(prev => prev.filter(e => e.id !== id));
